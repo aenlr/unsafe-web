@@ -1,7 +1,6 @@
 .pytest_cache/
 .idea/
 *.egg-info/
-*.db
 *.log
 .DS_Store
 build/

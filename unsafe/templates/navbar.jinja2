@@ -9,7 +9,7 @@
   <div class="container">
     {# Ikon och hamburgermeny #}
     <div class="navbar-brand">
-      <a class="navbar-item" href="{{ request.route_url('index') }}">
+      <a class="navbar-item" href="{{ 'index' | route_url }}">
         <i class="fas fa-radiation-alt"></i>
       </a>
 
@@ -25,7 +25,7 @@
       <div class="navbar-start">
         {% for route, caption in navigation_bar %}
           <a class="navbar-item {{ 'is-active' if route == active_page else '' }}"
-             href="{{ request.route_url(route) }}">
+             href="{{ route | route_url }}">
             {{ caption }}
           </a>
         {% endfor %}
@@ -48,7 +48,7 @@
 
               <hr class="navbar-divider">
 
-              <a class="navbar-item" href="{{ request.route_url('logout') }}">
+              <a class="navbar-item" href="{{ 'logout' | route_url }}">
                 Logga ut
               </a>
             </div>
@@ -56,7 +56,7 @@
         {% else %}
           <div class="navbar-item">
             <div class="buttons">
-              <a class="button is-light" href="{{ request.route_url('login') }}">
+              <a class="button is-light" href="{{ 'login' | route_url }}">
                 Logga in
               </a>
             </div>

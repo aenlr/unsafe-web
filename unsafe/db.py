@@ -1,6 +1,19 @@
+import os
 import sqlite3
 from contextlib import contextmanager
 from typing import Iterator, Type, Union
+
+
+def runscripts(db: Union[str, sqlite3.Connection], *scripts, script_path=None):
+    with cursor(db) as cur:
+        for script in scripts:
+            if script_path:
+                full_path = os.path.join(script_path, script)
+            else:
+                full_path = script
+            with open(full_path, encoding='utf-8') as f:
+                sql = f.read()
+                cur.executescript(sql)
 
 
 def connect(database: str, **kwargs):

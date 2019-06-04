@@ -17,13 +17,7 @@ def setup_module(module):
         pass
 
     sql_path = os.path.join(unsafe.__path__[0], 'sql')
-    with db.connection(test_databasename) as conn:
-        for script in ['db-create.sql', 'db-init.sql']:
-            script_path = os.path.join(sql_path, script)
-            with open(script_path) as f:
-                script = f.read()
-                conn.executescript(script)
-
+    db.runscripts(test_databasename, 'db-create.sql', 'db-init.sql', script_path=sql_path)
 
 
 @pytest.fixture
@@ -34,7 +28,7 @@ def conn():
 
 
 def test_create(conn):
-    user = userdb.create(conn, 'bob', 'secret', 'bob@example.com', False)
+    user = userdb.create(conn, 'bob', 'secret', 'bob@example.com')
     assert user.user_id is not None
     assert user.username == 'bob'
     assert user.password is not None

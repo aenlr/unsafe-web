@@ -1,7 +1,7 @@
 {% extends "layout.jinja2" %}
+{% set title = 'Utloggad' -%}
 
-{% block title %}
-  Utloggad
+{% block heading %}
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,7 @@
 
       <p>
         Du är utloggad.
-        <a href="/login">Logga in</a> igen.
+        <a href="{{ 'login' | route_url }}">Logga in</a> igen.
       </p>
     </main>
   </div>

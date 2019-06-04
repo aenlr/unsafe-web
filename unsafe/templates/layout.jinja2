@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>{% block title %}{% endblock %} - Osäker webb</title>
+  <title>{{ title }} - Osäker webb</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css">
   <link rel="stylesheet" href="{{ request.static_url('unsafe:static/css/unsafe.css') }}">
@@ -16,23 +16,41 @@
 
 <body>
 
-{% if 'embedded' not in request.params %}
-{% include "navbar.jinja2" %}
+{% if not embedded %}
+  {% include "navbar.jinja2" %}
+  {% block heading %}
+  <section class="hero is-primary">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          {{ title }}
+        </h1>
+        <h2 class="subtitle">
+          Osäker webb
+        </h2>
+      </div>
+    </div>
+  </section>
+  {% endblock heading %}
 {% endif %}
 
+<section class="section">
 {% block content %}
 {% endblock content %}
+</section>
 
+{% if not embedded %}
 <footer class="footer">
   <div class="content has-text-centered">
     <p>
       <strong>Osäker webb</strong> av Anders Norlander.
     </p>
     <p>
-      <a href="https://github.com/anob3it/unsafe">Källkoden</a> är <a href="http://opensource.org/licenses/mit-license.php">MIT-licensierad</a>.
+      <a href="https://github.com/anob3it/unsafe-web">Källkoden</a> är <a href="http://opensource.org/licenses/mit-license.php">MIT-licensierad</a>.
     </p>
   </div>
 </footer>
+{% endif %}
 
 {% block scripts %}
 {% endblock %}

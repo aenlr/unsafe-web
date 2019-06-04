@@ -1,27 +1,10 @@
 {% extends "layout.jinja2" %}
 {% set active_page = 'posts' -%}
-
-{% block title %}
-  Inlägg
-{% endblock %}
+{% set title = 'Inlägg' -%}
 
 {% block content %}
-  <section class="hero is-primary">
-    <div class="hero-body">
-      <div class="container">
-        <h1 class="title">
-          Inlägg
-        </h1>
-        <h2 class="subtitle">
-          Osäker webb
-        </h2>
-      </div>
-    </div>
-  </section>
-
-  <header class="section">
-    <main class="container">
-      <!--
+  <main class="container">
+    <!--
       <form method="get" action="{{ request.current_route_url() }}">
         <nav class="level">
           <div class="level-left">
@@ -70,30 +53,30 @@
         </nav>
       </form>
       -->
-      {% for post in posts %}
-        <article class="card">
-          <header class="card-header">
-            <div>
-              <p class="title is-4">John Smith</p>
-              <p class="subtitle is-6">@johnsmith</p>
-            </div>
-
-          </header>
-          <div class="card-content">
-            <div class="content">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris.
-              <a href="#">@bulmaio</a>. <a href="#">#css</a> <a href="#">#responsive</a>
-              <br>
-              <time datetime="2016-1-1">11:09 PM - 1 Jan 2016</time>
-            </div>
+    {#% for post in posts %#}
+      <article class="card">
+        <header class="card-header">
+          <div>
+            <p class="title is-4">John Smith</p>
+            <p class="subtitle is-6">@johnsmith</p>
           </div>
-          <footer class="card-footer">
-            <a href="#" class="card-footer-item">Save</a>
-            <a href="#" class="card-footer-item">Edit</a>
-            <a href="#" class="card-footer-item">Delete</a>
-          </footer>
-        </article>
-      {% endfor %}
-    </main>
+
+        </header>
+        <div class="card-content">
+          <div class="content">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris.
+            <a href="#">@bulmaio</a>. <a href="#">#css</a> <a href="#">#responsive</a>
+            <br>
+            <time datetime="2016-1-1">11:09 PM - 1 Jan 2016</time>
+          </div>
+        </div>
+        <footer class="card-footer">
+          <a href="#" class="card-footer-item">Save</a>
+          <a href="#" class="card-footer-item">Edit</a>
+          <a href="#" class="card-footer-item">Delete</a>
+        </footer>
+      </article>
+    {#% endfor %#}
+  </main>
   </div>
 {% endblock %}
