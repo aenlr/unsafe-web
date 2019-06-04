@@ -1,10 +1,10 @@
 
 def abbrev_filter(value: str, maxlen=40):
-    '''Return the first line of a string abbreviated to ``maxlen`` characters.
+    """Return the first line of a string abbreviated to ``maxlen`` characters.
 
     The result will have an ellipsis appended if truncated by leaving out lines
-    are truncating the first line.
-    '''
+    or truncating the first line.
+    """
     if not value:
         return value
     try:

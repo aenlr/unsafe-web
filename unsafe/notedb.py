@@ -32,7 +32,7 @@ def find_notes(conn, user_id, from_date=None, to_date=None, search: Optional[str
     sql += ' ORDER BY updated_at DESC'
 
     with db.cursor(conn) as cur:
-        return db.fetchlist(cur, Note, sql, params)
+        return db.fetchall(cur, Note, sql, params)
 
 
 def _find_note(cur, note_id):

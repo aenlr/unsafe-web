@@ -4,7 +4,21 @@ from contextlib import contextmanager
 from typing import Iterator, Type, Union
 
 
+def init(db: Union[str, sqlite3.Connection]):
+    """Initialize database, creating tables and loading initial data."""
+    import unsafe
+    sql_path = os.path.join(unsafe.__path__[0], 'sql')
+    runscripts(db, 'db-create.sql', 'db-init.sql', script_path=sql_path)
+
+
 def runscripts(db: Union[str, sqlite3.Connection], *scripts, script_path=None):
+    """
+    Run SQL scripts against database.
+
+    :param db: database name or existing connection
+    :param scripts: list of script filenames
+    :param script_path: path to prepend to script filenames
+    """
     with cursor(db) as cur:
         for script in scripts:
             if script_path:
@@ -84,7 +98,7 @@ def fetchone(cur: sqlite3.Cursor, mapping: Type, select: str, params: tuple):
         return maprow(mapping, row)
 
 
-def fetchlist(cur: sqlite3.Cursor, mapping: Type, select: str, params: tuple):
+def fetchall(cur: sqlite3.Cursor, mapping: Type, select: str, params: tuple):
     cur.execute(select, params)
     rows = cur.fetchall()
     return [maprow(mapping, row) for row in rows]

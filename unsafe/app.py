@@ -176,10 +176,21 @@ def create_note(request: Request):
 
 
 def _register_db(config):
+    import os
     from . import db
+    import unsafe
+
+    dbname = config.registry.settings.get('database', 'app.db')
+    if not os.path.exists(dbname):
+        sql_path = os.path.join(unsafe.__path__[0], 'sql')
+        try:
+            db.runscripts(dbname, 'db-create.sql', 'db-init.sql', script_path=sql_path)
+        except Exception:
+            os.remove(dbname)
+            raise
 
     def get_connection(request: Request):
-        conn = db.connect('app.db')
+        conn = db.connect(dbname)
 
         def commit_callback(request):
             if request.exception is not None:

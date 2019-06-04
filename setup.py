@@ -22,7 +22,7 @@ docs_extras = [
     'docutils'
 ]
 
-dev_extras = testing_extras + docs_extras
+dev_extras = testing_extras  # + docs_extras
 
 setup(name='unsafe',
       version='0.1',
@@ -34,16 +34,26 @@ setup(name='unsafe',
           "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
       ],
       author='Anders Norlander',
-      url='',
-      keywords='web pyramid',
+      url='https://github.com/anob3it/unsafe-web',
+      keywords='web pyramid xss csrf security',
+      license='MIT',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
       setup_requires=['pytest-runner'],
       extras_require={'dev': dev_extras, 'testing': testing_extras, 'docs': docs_extras},
-      entry_points="""\
-      [paste.app_factory]
-      main = unsafe:main
-      """,
-      )
+      entry_points={
+          'console_scripts': [
+              'unsafe-initdb = unsafe.scripts.initdb:main',
+              'unsafe = unsafe'
+          ],
+          'paste.app_factory': [
+              'main = unsafe:main',
+          ],
+      },
+# entry_points="""\
+# [paste.app_factory]
+# main = unsafe:main
+# """,
+)

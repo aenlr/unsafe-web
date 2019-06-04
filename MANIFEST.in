@@ -1,3 +1,2 @@
-include .editorconfig *.txt *.ini *.cfg *.rst
+include .editorconfig .gitignore *.ini *.cfg *.rst *.txt *.md
 recursive-include unsafe *.ico *.png *.css *.gif *.jpg *.txt *.js *.html *.jinja2 *.sql
-

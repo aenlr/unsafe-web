@@ -4,6 +4,7 @@ __pycache__/
 *.db
 *.egg-info/
 *.log
+.eggs/
 .DS_Store
 build/
 dist/
