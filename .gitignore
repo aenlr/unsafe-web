@@ -1,5 +1,7 @@
 .pytest_cache/
+__pycache__/
 .idea/
+*.db
 *.egg-info/
 *.log
 .DS_Store
