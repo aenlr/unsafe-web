@@ -1,0 +1,29 @@
+CREATE TABLE IF NOT EXISTS user
+(
+  user_id  INTEGER PRIMARY KEY,
+  username TEXT NOT NULL,
+  password TEXT NULL,
+  email    TEXT NULL,
+  groups   TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS note
+(
+  note_id    INTEGER PRIMARY KEY,
+  user_id    INTEGER   NOT NULL,
+  content    TEXT      NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT note_user_fk FOREIGN KEY (user_id) REFERENCES user (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS post
+(
+  post_id    INTEGER PRIMARY KEY,
+  user_id    INTEGER   NOT NULL,
+  subject    TEXT      NOT NULL,
+  content    TEXT      NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT post_user_fk FOREIGN KEY (user_id) REFERENCES user (user_id)
+);

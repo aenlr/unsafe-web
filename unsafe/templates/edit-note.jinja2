@@ -1,0 +1,59 @@
+{% extends "layout.jinja2" %}
+{% set active_page = 'notes' -%}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block content %}
+  <section class="hero is-primary">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          {{ title }}
+        </h1>
+        <h2 class="subtitle">
+          Osäker webb
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <div class="section">
+    <main class="container">
+
+      <form method="post" action="{{ request.current_route_url() }}">
+        <div class="field">
+          <label for="note">Anteckning</label>
+          <div class="control">
+            <textarea id="note" name="note" class="textarea" rows="10" autofocus>{{ note.content }}</textarea>
+          </div>
+        </div>
+
+        <div class="field is-grouped is-grouped-right">
+          <p class="control">
+            <a id="cancel" class="button is-light" href="{{ request.route_url('notes') }}">
+              Avbryt
+            </a>
+          </p>
+          <p class="control">
+            <button type="submit" class="button is-primary" accesskey="">
+              Spara
+            </button>
+          </p>
+        </div>
+
+      </form>
+
+    </main>
+  </div>
+
+  <script>
+    document.body.addEventListener('keydown', function(event) {
+      if (event.code === 'Escape') {
+        event.preventDefault();
+        document.querySelector('#cancel').click();
+      }
+    })
+  </script>
+{% endblock %}

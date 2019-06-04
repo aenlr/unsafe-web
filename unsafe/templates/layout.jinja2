@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="sv" class="has-navbar-fixed-top">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{% block title %}{% endblock %} - Osäker webb</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css">
+  <link rel="stylesheet" href="{{ request.static_url('unsafe:static/css/unsafe.css') }}">
+  <script defer src="https://use.fontawesome.com/releases/v5.8.2/js/all.js"></script>
+  <script defer src="{{ request.static_url('unsafe:static/js/unsafe.js') }}"></script>
+</head>
+
+<body>
+
+{% if 'embedded' not in request.params %}
+{% include "navbar.jinja2" %}
+{% endif %}
+
+{% block content %}
+{% endblock content %}
+
+<footer class="footer">
+  <div class="content has-text-centered">
+    <p>
+      <strong>Osäker webb</strong> av Anders Norlander.
+    </p>
+    <p>
+      <a href="https://github.com/anob3it/unsafe">Källkoden</a> är <a href="http://opensource.org/licenses/mit-license.php">MIT-licensierad</a>.
+    </p>
+  </div>
+</footer>
+
+{% block scripts %}
+{% endblock %}
+
+</body>
+</html>

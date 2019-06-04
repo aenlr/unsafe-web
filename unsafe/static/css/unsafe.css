@@ -1,0 +1,10 @@
+@media screen and (min-width: 1088px) {
+  .navbar-link.is-active:not(:hover), a.navbar-item.is-active:not(:hover) {
+    background-color: #fafafa !important;
+    color: #3273dc !important;
+  }
+}
+
+.navbar-brand > .navbar-item {
+  font-size: 34px;
+}

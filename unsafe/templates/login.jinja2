@@ -1,0 +1,61 @@
+{% extends "layout.jinja2" %}
+{% set active_page = 'login' -%}
+
+{% block title %}
+  Inloggning
+{% endblock %}
+
+{% block content %}
+  <div class="section">
+    <div class="columns is-mobile is-centered">
+      <main class="column is-narrow" style="width: 100%; max-width: 350px">
+        <div class="box">
+          <h1 class="title">
+            Inloggning
+          </h1>
+          <p class="subtitle">
+            Ange namn och lösenord.
+          </p>
+
+          <form method="post" action="{{ login_url }}" autocomplete="on">
+
+            <input name="next" type="hidden" value="{{ next }}">
+
+            <div class="field">
+              <label class="label" for="username">Användarnamn</label>
+              <div class="control has-icons-left">
+                <input id="username" name="username" class="input" type="text" value="{{ username }}" required
+                       autofocus>
+                <span class="icon is-small is-left">
+              <i class="fas fa-user"></i>
+            </span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="password">Lösenord</label>
+              <div class="control has-icons-left ">
+                <input id="password" name="password" class="input" type="password" required>
+                <span class="icon is-small is-left">
+              <i class="fas fa-lock"></i>
+            </span>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="control">
+                <button name="submit" type="submit" class="button is-link">Logga in</button>
+              </div>
+            </div>
+
+            {% if failed %}
+              <p class="notification is-danger" role="alert">Inloggning misslyckades. Kontrollera användarnamn och
+                lösenord.</p>
+            {% endif %}
+
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+{% endblock %}

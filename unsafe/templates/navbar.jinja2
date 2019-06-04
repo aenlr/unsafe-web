@@ -1,0 +1,68 @@
+{# Element i menyraden #}
+{% set navigation_bar = [
+    ('index', 'Startsida'),
+    ('notes', 'Anteckningar'),
+] -%}
+{% set active_page = active_page|default('index') -%}
+
+<nav class="navbar is-fixed-top" role="navigation">
+  <div class="container">
+    {# Ikon och hamburgermeny #}
+    <div class="navbar-brand">
+      <a class="navbar-item" href="{{ request.route_url('index') }}">
+        <i class="fas fa-radiation-alt"></i>
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="Meny" aria-expanded="false" data-target="navbar">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navbar" class="navbar-menu">
+      {# Navigeringslänkar #}
+      <div class="navbar-start">
+        {% for route, caption in navigation_bar %}
+          <a class="navbar-item {{ 'is-active' if route == active_page else '' }}"
+             href="{{ request.route_url(route) }}">
+            {{ caption }}
+          </a>
+        {% endfor %}
+      </div>
+
+      {# Inloggning och utloggning #}
+      <div class="navbar-end">
+        {% if request.user %}
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link" aria-label="Inloggad som {{ request.user.username }}">
+            <span class="icon is-large">
+              <i class="fas fa-user"></i>
+            </span>
+            </a>
+
+            <div class="navbar-dropdown is-right">
+              <div class="navbar-item" disabled>
+                Inloggad som: {{ request.user.username }}
+              </div>
+
+              <hr class="navbar-divider">
+
+              <a class="navbar-item" href="{{ request.route_url('logout') }}">
+                Logga ut
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <div class="navbar-item">
+            <div class="buttons">
+              <a class="button is-light" href="{{ request.route_url('login') }}">
+                Logga in
+              </a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
