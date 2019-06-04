@@ -18,38 +18,41 @@
 
 {% if not embedded %}
   {% include "navbar.jinja2" %}
+
   {% block heading %}
-  <section class="hero is-primary">
-    <div class="hero-body">
-      <div class="container">
-        <h1 class="title">
-          {{ title }}
-        </h1>
-        <h2 class="subtitle">
-          Osäker webb
-        </h2>
+    <section class="hero is-primary">
+      <div class="hero-body">
+        <div class="container">
+          <h1 class="title">
+            {{ title }}
+          </h1>
+          <h2 class="subtitle">
+            Osäker webb
+          </h2>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
   {% endblock heading %}
+
 {% endif %}
 
 <section class="section">
-{% block content %}
-{% endblock content %}
+  {% block content %}
+  {% endblock content %}
 </section>
 
 {% if not embedded %}
-<footer class="footer">
-  <div class="content has-text-centered">
-    <p>
-      <strong>Osäker webb</strong> av Anders Norlander.
-    </p>
-    <p>
-      <a href="https://github.com/anob3it/unsafe-web">Källkoden</a> är <a href="http://opensource.org/licenses/mit-license.php">MIT-licensierad</a>.
-    </p>
-  </div>
-</footer>
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p>
+        <strong>Osäker webb</strong> av Anders Norlander.
+      </p>
+      <p>
+        <a href="https://github.com/anob3it/unsafe-web">Källkoden</a> är <a
+        href="http://opensource.org/licenses/mit-license.php">MIT-licensierad</a>.
+      </p>
+    </div>
+  </footer>
 {% endif %}
 
 {% block scripts %}
