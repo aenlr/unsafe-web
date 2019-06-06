@@ -84,7 +84,7 @@
             </a>
 
             <a class="button is-small is-danger"
-               onclick="Unsafe.confirmDelete(event)"
+               onclick="deleteNote(event)"
                href="{{ 'note-action' | route_url(_query=(('action', 'delete'), ('id',note.post_id))) }}">
                 <span class=" icon is-small">
                   <i class="fas fa-trash-alt"></i>
@@ -98,7 +98,11 @@
       <tr>
         <td colspan="4">
           <p class="subtitle is-5">
-            {% if notes %}<strong>{{ notes | count }}</strong>{% else %}Inga{% endif %}
+            {% if notes %}
+              <strong>{{ notes | count }}</strong>
+            {%- else -%}
+              Inga
+            {% endif %}
             anteckningar
           </p>
         </td>
@@ -106,4 +110,42 @@
       </tfoot>
     </table>
   </main>
+{% endblock %}
+
+{% block scripts %}
+  <script defer src="{{ 'unsafe:static/js/modal.js' | static_url }}"></script>
+
+  <script>
+    function deleteNote(event) {
+      event.preventDefault();
+
+      const deleteSideEffectUrl = event.currentTarget.href;
+
+      const performDelete = () => {
+        fetch(deleteSideEffectUrl, {credentials: 'include'})
+          .then(response => {
+            if (response.ok) {
+              window.location.reload();
+            } else {
+              alert('Kunde inte ta bort');
+            }
+          })
+      };
+
+      const modal = new Modal({
+        title: 'Bekräfta',
+        message: 'Vill du ta bort anteckningen?',
+        buttons: [
+          { role: 'delete', title: 'Ja, ta bort den', class: 'is-danger' },
+          { role: 'cancel', title: 'Nej, behåll den' }
+        ]
+      });
+
+      modal
+        .on('delete', performDelete)
+        .always(() => modal.destroy())
+        .show();
+
+    }
+  </script>
 {% endblock %}
