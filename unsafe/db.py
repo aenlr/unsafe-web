@@ -32,8 +32,8 @@ def runscripts(db: Union[str, sqlite3.Connection], *scripts, script_path=None):
 
 def connect(database: str, **kwargs):
     conn = sqlite3.connect(database, **kwargs)
-    conn.row_factory = sqlite3.Row
     conn.execute('PRAGMA foreign_keys = ON')
+    conn.row_factory = sqlite3.Row
     return conn
 
 
@@ -52,6 +52,7 @@ def cursor(db: Union[str, sqlite3.Connection], commit=None) -> Iterator[sqlite3.
             commit = True
         try:
             cur = conn.cursor()
+            #cur.execute("PRAGMA foreign_keys = ON")
             yield cur
             if commit:
                 conn.commit()
@@ -62,6 +63,7 @@ def cursor(db: Union[str, sqlite3.Connection], commit=None) -> Iterator[sqlite3.
         conn = db
         cur = conn.cursor()
         try:
+            #cur.execute("PRAGMA foreign_keys = ON")
             yield cur
             if commit:
                 conn.commit()

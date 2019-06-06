@@ -8,3 +8,7 @@
 .navbar-brand > .navbar-item {
   font-size: 34px;
 }
+
+.media .is-48x48 .icon.avatar {
+  font-size: 40px;
+}

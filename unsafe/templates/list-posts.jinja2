@@ -3,80 +3,88 @@
 {% set title = 'Inlägg' -%}
 
 {% block content %}
-  <main class="container">
-    <!--
-      <form method="get" action="{{ request.current_route_url() }}">
-        <nav class="level">
-          <div class="level-left">
-            <div class="level-item">
-              <div class="field has-addons">
-                <p class="control">
-                  <a class="button is-static">
-                    Från datum:
-                  </a>
-                </p>
-                <p class="control">
-                  <input class="input" name="from" type="date" value="{{ from }}">
-                </p>
-              </div>
-            </div>
-            <div class="level-item">
-              <div class="field has-addons">
-                <p class="control">
-                  <a class="button is-static">
-                    Till datum:
-                  </a>
-                </p>
-                <p class="control">
-                  <input class="input" name="to" type="date" value="{{ to }}">
-                </p>
-              </div>
-            </div>
-
-            <div class="level-item">
-              <div class="field">
-                <p class="control">
-                  <input class="input" name="search" type="text" placeholder="Sök inlägg" value="{{ search }}"
-                         autofocus onfocus="this.select()">
-                </p>
-              </div>
-            </div>
-
-            <div class="level-item">
+  <div class="container">
+    <form method="get" action="{{ request.current_route_url() }}">
+      <nav class="level">
+        <div class="level-left">
+          <div class="level-item">
+            <div class="field has-addons">
               <p class="control">
-                <button class="button" type="submit">
-                  Sök
-                </button>
+                <a class="button is-static">
+                  Från datum:
+                </a>
+              </p>
+              <p class="control">
+                <input class="input" name="from" type="date" value="{{ from }}">
               </p>
             </div>
           </div>
-        </nav>
-      </form>
-      -->
-    {#% for post in posts %#}
-      <article class="card">
-        <header class="card-header">
-          <div>
-            <p class="title is-4">John Smith</p>
-            <p class="subtitle is-6">@johnsmith</p>
+          <div class="level-item">
+            <div class="field has-addons">
+              <p class="control">
+                <a class="button is-static">
+                  Till datum:
+                </a>
+              </p>
+              <p class="control">
+                <input class="input" name="to" type="date" value="{{ to }}">
+              </p>
+            </div>
           </div>
 
-        </header>
-        <div class="card-content">
-          <div class="content">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris.
-            <a href="#">@bulmaio</a>. <a href="#">#css</a> <a href="#">#responsive</a>
-            <br>
-            <time datetime="2016-1-1">11:09 PM - 1 Jan 2016</time>
+          <div class="level-item">
+            <div class="field">
+              <p class="control">
+                <input class="input" name="search" type="text" placeholder="Sök inlägg" value="{{ search }}"
+                       autofocus onfocus="this.select()">
+              </p>
+            </div>
+          </div>
+
+          <div class="level-item">
+            <p class="control">
+              <button class="button" type="submit">
+                Sök
+              </button>
+            </p>
           </div>
         </div>
-        <footer class="card-footer">
-          <a href="#" class="card-footer-item">Save</a>
-          <a href="#" class="card-footer-item">Edit</a>
-          <a href="#" class="card-footer-item">Delete</a>
-        </footer>
+      </nav>
+    </form>
+  </div>
+
+  <div class="container">
+    {% for post in posts recursive %}
+      <article class="media" id="post-{{ post.post_id }}">
+        <figure class="media-left">
+          <p class="image is-48x48">
+            <span class="icon is-large avatar">
+              <i class="fas fa-user"></i>
+            </span>
+          </p>
+        </figure>
+        <div class="media-content">
+          <div class="content">
+            <p>
+              <strong>@{{ users[post.user_id].username }}</strong>
+              <small>
+                <time datetime="{{ post.created_at }}">{{ post.created_at[:10] }}</time>
+              </small>
+              <br>
+              {{ post.content | safe }}
+              <br>
+              <small>
+                <span class="tag is-rounded {{ '' if post.likes else 'is-hidden' }}" id="likes-{{ post.post_id }}">{{ post.likes }}</span>
+                <a>Gilla</a> · <a>Svara</a> · {{ post.created_at | since }}
+              </small>
+            </p>
+          </div>
+
+          {%- if post.replies -%}
+          {{ loop(post.replies) }}
+          {%- endif -%}
+        </div>
       </article>
-    {#% endfor %#}
-  </main>
+    {% endfor %}
   </div>
 {% endblock %}

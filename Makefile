@@ -2,6 +2,9 @@ VENV = venv
 
 .PHONY: venv
 
+all:
+	@echo "What do you want?"
+
 venv:
 	python3 -m venv $(VENV)
 

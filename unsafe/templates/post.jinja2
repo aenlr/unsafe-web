@@ -1,0 +1,27 @@
+<article class="media" id="post-{{ post.post_id }}">
+  <figure class="media-left">
+    <p class="image is-48x48">
+            <span class="icon is-large avatar">
+              <i class="fas fa-user"></i>
+            </span>
+    </p>
+  </figure>
+  <div class="media-content">
+    <div class="content">
+      <p>
+        <strong>@{{ users[post.user_id].username }}</strong>
+        <small>
+          <time datetime="{{ post.created_at }}">{{ post.created_at[:10] }}</time>
+        </small>
+        <br>
+        {{ post.content | safe }}
+        <br>
+        <small>
+          <span class="tag is-rounded {{ '' if post.likes else 'is-hidden' }}"
+                id="likes-{{ post.post_id }}">{{ post.likes }}</span>
+          <a>Gilla</a> · <a>Svara</a> · {{ post.created_at | since }}
+        </small>
+      </p>
+    </div>
+  </div>
+</article>

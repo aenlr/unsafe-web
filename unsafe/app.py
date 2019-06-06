@@ -1,13 +1,12 @@
-from pyramid.httpexceptions import HTTPFound, HTTPForbidden, HTTPNoContent
+from pyramid.httpexceptions import HTTPFound, HTTPForbidden
+from pyramid.request import Request
 from pyramid.security import (
     remember, forget,
     Allow,
     Authenticated,
 )
 from pyramid.view import view_config, forbidden_view_config
-from pyramid.request import Request
 
-from . import notedb
 from . import userdb
 
 
@@ -28,38 +27,18 @@ class RootContextFactory:
             ]
 
 
-class NotesFactory(RootContextFactory):
-
-    def __getitem__(self, note_id):
-        note = notedb.find_note(self.request.db, note_id)
-        if note:
-            return NoteResource(note)
-
-        raise KeyError(note_id)
-
-
-class NoteResource:
-    def __init__(self, note: notedb.Note):
-        self.note = note
-
-    @property
-    def __acl__(self):
-        return [
-            (Allow, self.note.user_id, ('view', 'edit'))
-        ]
-
 
 ###############################################################################
 ## Login
 ###############################################################################
 
 @view_config(route_name='index', renderer='templates/index.jinja2')
-def index(request: Request):
+def index(request):
     return {}
 
 
 @view_config(route_name='login', renderer='templates/login.jinja2')
-def login_view(request):
+def login_view(request: Request):
     """Login form.
 
     After successful login redirects to the URL in the query or post parameter ``next``.
@@ -98,7 +77,6 @@ def logout_view(request):
     request.response.headers.extend(headers)
     login_url = request.route_url('login')
     return dict(login_url=login_url)
-    # return HTTPFound(location=login_url, headers=headers)
 
 
 @forbidden_view_config()
@@ -112,67 +90,6 @@ def forbidden_view(request):
     login_url = request.route_url('login', _query=(('next', request.path),))
     return HTTPFound(location=login_url)
 
-
-###############################################################################
-## Notes
-###############################################################################
-
-@view_config(route_name='note-action', request_method=('GET', 'POST'), request_param='action=delete')
-def delete_note_unsafe(request):
-    """Unsafe delete of note.
-
-    - Deletes as a side effect of GET request
-    - Does not validate arguments (SQL injection due to unsafe implementation of delete_note)
-    - Does not check permissions
-    """
-
-    notedb.delete_note(request.db, request.params['id'])
-    return HTTPNoContent()
-
-
-@view_config(route_name='notes', permission='view', renderer='templates/list-notes.jinja2')
-def notes_view(request):
-    search = request.params.get('search', '')
-    from_date = request.params.get('from', '')
-    to_date = request.params.get('to', '')
-    notes = notedb.find_notes(request.db,
-                              user_id=request.user.user_id,
-                              from_date=from_date,
-                              to_date=to_date,
-                              search=search)
-
-    return {
-        'user': request.user,
-        'notes': notes,
-        'from': from_date,
-        'to': to_date,
-        'search': search
-    }
-
-
-@view_config(route_name='edit-note', permission='edit', renderer='templates/edit-note.jinja2')
-def edit_note(context: NoteResource, request: Request):
-    if request.method == 'POST':
-        content: str = request.params['note']
-        context.note.content = content.replace('\r', '')
-        notedb.save_note(request.db, context.note)
-        return HTTPFound(location=request.route_url('notes'))
-
-    return dict(title='Redigera anteckning',
-                note=context.note)
-
-
-@view_config(route_name='new-note', permission='edit', renderer='templates/edit-note.jinja2')
-def create_note(request: Request):
-    if request.method == 'POST':
-        note = notedb.Note(None,
-                           user_id=request.user.user_id,
-                           content=request.params['note'])
-        notedb.save_note(request.db, note)
-        return HTTPFound(location=request.route_url('notes'))
-
-    return dict(title='Ny anteckning',
-                note=notedb.Note(None, user_id=request.user.user_id, content=''))
 
 
 def _register_db(config):
@@ -197,6 +114,7 @@ def _register_db(config):
                 conn.rollback()
             else:
                 conn.commit()
+            conn.close()
 
         request.add_finished_callback(commit_callback)
         return conn
@@ -249,16 +167,14 @@ def main(global_config, **settings):
     config.set_root_factory(RootContextFactory)
     config.add_static_view(name='static', path='unsafe:static', cache_max_age=0)
 
+    # Base routes
     config.add_route('index', '/')
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
 
-    config.add_route('notes', '/notes', factory=NotesFactory)
-    config.add_route('new-note', '/notes/new')
-    config.add_route('edit-note', '/notes/{note}/edit', factory=NotesFactory,
-                     traverse='/{note}')
-
-    config.add_route('note-action', '/api/notes')
+    # Include modules
+    config.include('unsafe.notes')
+    config.include('unsafe.posts')
 
     # Scan annotations
     config.scan(ignore='unsafe.__main__')

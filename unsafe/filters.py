@@ -1,3 +1,7 @@
+from datetime import datetime
+import math
+from typing import Union
+
 
 def abbrev_filter(value: str, maxlen=40):
     """Return the first line of a string abbreviated to ``maxlen`` characters.
@@ -23,3 +27,32 @@ def abbrev_filter(value: str, maxlen=40):
         clipped = True
 
     return value + '\u2026' if clipped else value
+
+
+def since_filter(value: Union[datetime, str]):
+    if not value:
+        return ''
+
+    if isinstance(value, str):
+        dt = datetime.fromisoformat(value)
+    else:
+        dt = value
+
+    now = datetime.now()
+    delta = now - dt
+    if delta.days >= 365:
+        years = int(math.ceil(delta.days / 365.0))
+        return f'{years} år'
+    elif delta.days >= 30:
+        months = int(math.ceil(delta.days / 30.0))
+        return f'{months} månader' if months > 1 else '1 månad'
+    elif delta.days > 0:
+        return f'{delta.days} dagar' if delta.days > 1 else '1 dag'
+    elif delta.seconds >= 3600:
+        hours = int(delta.seconds / 3600)
+        return f'{hours} timmar' if hours > 1 else '1 timme'
+    elif delta.seconds >= 60:
+        minutes = int(delta.seconds / 3600)
+        return f'{minutes} minuter' if minutes > 1 else '1 minut'
+    else:
+        return f'{delta.seconds} sekunder'

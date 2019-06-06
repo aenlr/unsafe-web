@@ -1,5 +1,5 @@
 """
-Runner utility that invokes pserve with default arguments if none are given: --reload development.ini
+Utility that invokes pserve with default arguments if none are given: --reload development.ini
 """
 import itertools
 import sys
@@ -14,14 +14,18 @@ def main(argv=sys.argv, quiet=False):
 
     if not any(arg.endswith('.ini') for arg in args):
         args.insert(0, 'development.ini')
+        if '--reload' not in opts:
+            opts.append('--reload')
 
-    if '--reload' not in opts \
-        and not any('production.ini' in arg for arg in args):
-        opts.append('--reload')
+    if '--no-reload' in opts:
+        opts.remove('--no-reload')
+        try:
+            opts.remove('--reload')
+        except ValueError:
+            pass
 
     pserve_args = [prog] + opts + args
-    cmd = pserve.main(pserve_args, quiet=quiet)
-    sys.exit(cmd.run() or 0)
+    return pserve.main(pserve_args, quiet=quiet)
 
 
 if __name__ == '__main__':  # pragma: no cover
