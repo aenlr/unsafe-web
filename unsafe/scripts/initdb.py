@@ -7,6 +7,7 @@ Database name is given as the first argument and defaults to `app.db` in the cur
 
 """
 import argparse
+import os
 import sys
 
 import unsafe.db
@@ -14,8 +15,13 @@ import unsafe.db
 
 def main(argv=sys.argv):
     parser = argparse.ArgumentParser()
+    parser.add_argument('--reset', '-r', action='store_true')
     parser.add_argument('db', default='app.db', nargs='?')
     args = parser.parse_args(argv[1:])
+
+    if args.reset and os.path.exists(args.db):
+        os.remove(args.db)
+
     unsafe.db.init(args.db)
 
 
