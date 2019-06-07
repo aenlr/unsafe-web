@@ -24,7 +24,8 @@ def main(argv=sys.argv, quiet=False):
         except ValueError:
             pass
 
-    pserve_args = [prog] + opts + args
+    pserve_args = ['pserve'] + opts + args
+    print(*pserve_args)
     return pserve.main(pserve_args, quiet=quiet)
 
 

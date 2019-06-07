@@ -20,8 +20,11 @@ initdb:
 cleandb:
 	rm -rf *.db
 
-build develop install sdist bdist check test:
+build develop install sdist bdist check:
 	python setup.py $@
+
+test:
+	pytest
 
 clean:
 	rm -rf build dist .eggs .pytest_cache *-test.db sessions.db *.log

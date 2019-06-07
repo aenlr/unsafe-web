@@ -52,7 +52,6 @@ def cursor(db: Union[str, sqlite3.Connection], commit=None) -> Iterator[sqlite3.
             commit = True
         try:
             cur = conn.cursor()
-            #cur.execute("PRAGMA foreign_keys = ON")
             yield cur
             if commit:
                 conn.commit()
@@ -63,7 +62,6 @@ def cursor(db: Union[str, sqlite3.Connection], commit=None) -> Iterator[sqlite3.
         conn = db
         cur = conn.cursor()
         try:
-            #cur.execute("PRAGMA foreign_keys = ON")
             yield cur
             if commit:
                 conn.commit()

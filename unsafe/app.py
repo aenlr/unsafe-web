@@ -1,3 +1,4 @@
+from pyramid.config import Configurator
 from pyramid.httpexceptions import HTTPFound, HTTPForbidden
 from pyramid.request import Request
 from pyramid.security import (
@@ -25,7 +26,6 @@ class RootContextFactory:
             return [
                 (Allow, Authenticated, 'view')
             ]
-
 
 
 ###############################################################################
@@ -91,17 +91,43 @@ def forbidden_view(request):
     return HTTPFound(location=login_url)
 
 
+def _register_request_db_attribute(config: Configurator) -> None:
+    """Regiser per request DB connection.
 
-def _register_db(config):
+    Register a ``db`` attribute on :class:`pyramid.request.Request` returning a database connection
+    for the duration of the request.
+
+    The connection is created lazily.
+    Any transaction is commited at the end of the request unless an exception was raised, in which case
+    the transaction is rolled back.
+
+    Example::
+
+        def view(request):
+            conn = request.db
+            cur = conn.cursor()
+            cur.execute('SELECT * FROM foo')
+            ...
+            cur.close()
+            ...
+
+    :param config: pyramid configurator
+    """
+    import logging
     import os
     from . import db
     import unsafe
 
-    dbname = config.registry.settings.get('database', 'app.db')
+    dbname = os.path.normpath(config.registry.settings.get('database', 'app.db'))
+    logging.getLogger(__name__).info('Database: %s', dbname)
+
+    # Initialize database on first run
     if not os.path.exists(dbname):
+        scripts = ('db-create.sql', 'db-init.sql')
         sql_path = os.path.join(unsafe.__path__[0], 'sql')
+        logging.getLogger(__name__).info('Running database scripts %s: %s', sql_path, ' '.join(scripts))
         try:
-            db.runscripts(dbname, 'db-create.sql', 'db-init.sql', script_path=sql_path)
+            db.runscripts(dbname, *scripts, script_path=sql_path)
         except Exception:
             os.remove(dbname)
             raise
@@ -127,7 +153,6 @@ def main(global_config, **settings):
     from .session import MySessionFactory
     from pyramid.authentication import SessionAuthenticationPolicy
     from pyramid.authorization import ACLAuthorizationPolicy
-    from pyramid.config import Configurator
 
     config = Configurator(settings=settings)
     config.include('pyramid_jinja2')
@@ -136,7 +161,7 @@ def main(global_config, **settings):
     # Make database connection available on request object as 'db'
     # - Commit transaction after successful request
     # - Roll back transaction if an exception is raised
-    _register_db(config)
+    _register_request_db_attribute(config)
 
     ##########################################################################
     # Setup session management
@@ -173,6 +198,7 @@ def main(global_config, **settings):
     config.add_route('logout', '/logout')
 
     # Include modules
+    #config.include('unsafe.admin')
     config.include('unsafe.notes')
     config.include('unsafe.posts')
 
