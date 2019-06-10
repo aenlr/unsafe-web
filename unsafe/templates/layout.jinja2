@@ -18,6 +18,10 @@
 
 <body>
 
+<script>
+  const BASE_URL = "{{ request.application_url }}";
+</script>
+
 {% if not embedded %}
   {% include "navbar.jinja2" %}
 

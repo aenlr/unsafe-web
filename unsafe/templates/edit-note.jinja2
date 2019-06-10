@@ -5,6 +5,8 @@
   <main class="container">
 
     <form method="post" action="{{ request.current_route_url() }}">
+      <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+
       <div class="field">
         <label for="note">Anteckning</label>
         <div class="control">

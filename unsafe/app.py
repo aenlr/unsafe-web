@@ -1,3 +1,6 @@
+import hmac
+import uuid
+
 from pyramid.config import Configurator
 from pyramid.httpexceptions import HTTPFound, HTTPForbidden
 from pyramid.request import Request
@@ -44,8 +47,20 @@ def login_view(request: Request):
     After successful login redirects to the URL in the query or post parameter ``next``.
     By default redirects to the index page.
     """
-    next_url = request.params.get('next') or request.route_url('index')
 
+    def bind_set_csrf_token(value, max_age=None):
+        def set_cookie(request, response):
+            response.set_cookie(
+                'csrf_token',
+                value=value,
+                path=request.path,
+                secure=request.scheme == 'https',
+                httponly=True,
+                samesite='Strict',
+                max_age=max_age)
+        return set_cookie
+
+    next_url = request.params.get('next') or request.route_url('index')
     if request.user:
         return HTTPFound(location=next_url)
 
@@ -54,19 +69,29 @@ def login_view(request: Request):
     if 'submit' in request.POST:
         username = request.POST.get('username', '')
         password = request.POST.get('password', '')
+        csrf_token = request.POST.get('csrf_token', '')
+        expected_csrf_token = request.cookies.get('csrf_token', '')
+        if hmac.compare_digest(csrf_token, expected_csrf_token):
+            user = userdb.authenticate(request.db, username, password)
+            if user:
+                # Important - at the very least generate a new session id at login/logout
+                # to prevent session fixation attacks.
+                request.session.invalidate()
+                request.user = user
+                headers = remember(request, user.user_id)
+                request.add_response_callback(bind_set_csrf_token('', 0))
+                return HTTPFound(location=next_url, headers=headers)
 
-        user = userdb.authenticate(request.db, username, password)
-        if user:
-            request.user = user
-            headers = remember(request, user.user_id)
-            return HTTPFound(location=next_url, headers=headers)
         failed = True
 
+    csrf_token = uuid.uuid4().hex
     url = request.route_url('login')
+    request.add_response_callback(bind_set_csrf_token(csrf_token))
     return dict(username=username,
                 next=next_url,
                 failed=failed,
-                login_url=url)
+                login_url=url,
+                csrf_token=csrf_token)
 
 
 @view_config(route_name='logout', renderer='templates/logout.jinja2')
@@ -153,6 +178,8 @@ def main(global_config, **settings):
     from .session import MySessionFactory
     from pyramid.authentication import SessionAuthenticationPolicy
     from pyramid.authorization import ACLAuthorizationPolicy
+    from pyramid.csrf import SessionCSRFStoragePolicy
+    import os
 
     config = Configurator(settings=settings)
     config.include('pyramid_jinja2')
@@ -165,14 +192,16 @@ def main(global_config, **settings):
 
     ##########################################################################
     # Setup session management
+    session_secret = os.environ.get('UNSAFE_SESSION_SECRET', 'secret')
     session_factory = MySessionFactory(
-        secret='HGHNJE9kXShQVY',
+        secret=session_secret,
         # secret=None, # No cookie signing!
         httponly=True,
         # secure=True,
         # query_param='session',
         accept_client_session_id=False)
     config.set_session_factory(session_factory)
+    config.set_csrf_storage_policy(SessionCSRFStoragePolicy())
 
     ##########################################################################
     # Setup authentication/authorization
@@ -190,6 +219,7 @@ def main(global_config, **settings):
     # - Root context factory provides a default ACL
     # - /static/* serves static files
     config.set_root_factory(RootContextFactory)
+    # Serve static files - in production this is offloaded to nginx
     config.add_static_view(name='static', path='unsafe:static', cache_max_age=0)
 
     # Base routes
@@ -198,11 +228,11 @@ def main(global_config, **settings):
     config.add_route('logout', '/logout')
 
     # Include modules
-    #config.include('unsafe.admin')
+    # config.include('unsafe.admin')
     config.include('unsafe.notes')
     config.include('unsafe.posts')
 
     # Scan annotations
-    config.scan(ignore='unsafe.__main__')
+    config.scan()
 
     return config.make_wsgi_app()

@@ -3,8 +3,8 @@ from pyramid.request import Request
 from pyramid.security import Allow
 from pyramid.view import view_config
 
-from .app import RootContextFactory
 from . import postdb
+from .app import RootContextFactory
 
 
 class NotesFactory(RootContextFactory):
@@ -33,12 +33,13 @@ class NoteResource:
 ###############################################################################
 
 @view_config(route_name='note-action', request_method=('GET', 'POST'), request_param='action=delete')
-def delete_note_unsafe(request):
+def delete_note(request):
     """Unsafe delete of note.
 
     - Deletes as a side effect of GET request
     - Does not validate arguments (SQL injection due to unsafe implementation of delete_note)
     - Does not check permissions
+    - Vulnerable to CSRF
     """
 
     postdb.delete_post(request.db, request.params['id'])
@@ -46,7 +47,7 @@ def delete_note_unsafe(request):
 
 
 @view_config(route_name='notes', permission='view', renderer='templates/list-notes.jinja2')
-def notes_view(request):
+def notes_listing(request):
     search = request.params.get('search', '')
     from_date = request.params.get('from', '')
     to_date = request.params.get('to', '')
@@ -68,26 +69,30 @@ def notes_view(request):
 @view_config(route_name='edit-note', permission='edit', renderer='templates/edit-note.jinja2')
 def edit_note(context: NoteResource, request: Request):
     if request.method == 'POST':
-        content: str = request.params['note']
-        context.note.content = content.replace('\r', '')
-        postdb.save_post(request.db, context.note)
+        _save_or_create_note(context.note, request)
         return HTTPFound(location=request.route_url('notes'))
 
     return dict(title='Redigera anteckning',
                 note=context.note)
 
 
-@view_config(route_name='new-note', permission='edit', renderer='templates/edit-note.jinja2')
+@view_config(route_name='new-note', permission='edit', renderer='templates/edit-note.jinja2', require_csrf=True)
 def create_note(request: Request):
+    note = postdb.Post(None,
+                       user_id=request.user.user_id,
+                       content=request.params.get('note', ''))
     if request.method == 'POST':
-        note = postdb.Post(None,
-                           user_id=request.user.user_id,
-                           content=request.params['note'])
-        postdb.save_post(request.db, note)
+        _save_or_create_note(note, request)
         return HTTPFound(location=request.route_url('notes'))
 
     return dict(title='Ny anteckning',
-                note=postdb.Post(None, user_id=request.user.user_id, content=''))
+                note=note)
+
+
+def _save_or_create_note(note, request: Request):
+    content: str = request.params['note']
+    note.content = content.replace('\r', '')
+    return postdb.save_post(request.db, note)
 
 
 def includeme(config):

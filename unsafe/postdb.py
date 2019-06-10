@@ -15,6 +15,9 @@ class Post:
     created_at: str = None
     updated_at: str = None
 
+    def __json__(self, *args):
+        return vars(self)
+
 
 def find_posts(conn,
                *,
