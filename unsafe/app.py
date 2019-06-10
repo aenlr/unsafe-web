@@ -12,6 +12,7 @@ from pyramid.security import (
 from pyramid.view import view_config, forbidden_view_config
 
 from . import userdb
+from .embed import embeddable
 
 
 class RootContextFactory:
@@ -40,7 +41,7 @@ def index(request):
     return {}
 
 
-@view_config(route_name='login', renderer='templates/login.jinja2')
+@view_config(route_name='login', renderer='templates/login.jinja2', decorator=embeddable)
 def login_view(request: Request):
     """Login form.
 
@@ -58,6 +59,7 @@ def login_view(request: Request):
                 httponly=True,
                 samesite='Strict',
                 max_age=max_age)
+
         return set_cookie
 
     next_url = request.params.get('next') or request.route_url('index')
@@ -104,7 +106,7 @@ def logout_view(request):
     return dict(login_url=login_url)
 
 
-@forbidden_view_config()
+@forbidden_view_config(decorator=embeddable)
 def forbidden_view(request):
     """Forbidden view. Redirects to login if the user is not already logged in, else returns HTTP 403."""
 
@@ -175,6 +177,7 @@ def _register_request_db_attribute(config: Configurator) -> None:
 
 def main(global_config, **settings):
     from . import auth
+    from . import embed
     from .session import MySessionFactory
     from pyramid.authentication import SessionAuthenticationPolicy
     from pyramid.authorization import ACLAuthorizationPolicy
@@ -183,6 +186,9 @@ def main(global_config, **settings):
 
     config = Configurator(settings=settings)
     config.include('pyramid_jinja2')
+
+    # Make embedded property available on request object
+    embed.register_request_property(config)
 
     ##########################################################################
     # Make database connection available on request object as 'db'
@@ -231,6 +237,7 @@ def main(global_config, **settings):
     # config.include('unsafe.admin')
     config.include('unsafe.notes')
     config.include('unsafe.posts')
+    config.include('unsafe.topics')
 
     # Scan annotations
     config.scan()

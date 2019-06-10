@@ -148,11 +148,24 @@ def _session_factory(*,
                      query_param: Optional[str],
                      accept_client_session_id: bool
                      ):
+
     def new_expiry_time():
         return int(time.time()) + timeout
 
     def new_session_id():
         return os.urandom(16).hex()
+
+    def set_session_cookie(request, response, val, max_age=None):
+        cookie_secure = request.scheme == 'https' if secure is None else secure
+        response.set_cookie(
+            cookie_name,
+            value=val,
+            path=path,
+            domain=domain,
+            secure=cookie_secure,
+            httponly=httponly,
+            samesite=samesite,
+            max_age=max_age)
 
     @implementer(ISession)
     class MySession(dict):
@@ -244,25 +257,18 @@ def _session_factory(*,
             """Response callback that persists session data and manages cookies"""
             if self._dirty:
                 if self._new:
-                    self._store_new_session(response)
+                    self._store_new_session(request, response)
                 else:
                     self._store_modified_session()
             elif self._reset_cookie:
-                response.set_cookie(
-                    cookie_name,
-                    value='',
-                    path=path,
-                    domain=domain,
-                    secure=secure,
-                    httponly=httponly,
-                    samesite=samesite,
-                    max_age=0
-                )
+                set_session_cookie(request, response, '', 0)
             elif self._accessed:
                 self._update_expiry_time()
 
-        def _store_new_session(self, response):
-            """Persist session data and set session cookie"""
+        def _store_new_session(self, request, response):
+            """Persist session data and set session cookie
+            :param request:
+            """
             if not self._session_id:
                 self._session_id = new_session_id()
             expires_at = new_expiry_time()
@@ -274,15 +280,7 @@ def _session_factory(*,
                                  userdata=userdata))
 
             cookie_val = cookie_serializer.dumps(self._session_id)
-            response.set_cookie(
-                cookie_name,
-                value=cookie_val,
-                path=path,
-                domain=domain,
-                secure=secure,
-                httponly=httponly,
-                samesite=samesite
-            )
+            set_session_cookie(request, response, cookie_val)
 
         def _store_modified_session(self):
             """Persist modified session data and update expiry time"""

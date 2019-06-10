@@ -5,6 +5,7 @@ from pyramid.view import view_config
 
 from . import postdb
 from .app import RootContextFactory
+from .embed import embeddable
 
 
 class NotesFactory(RootContextFactory):
@@ -66,7 +67,8 @@ def notes_listing(request):
     }
 
 
-@view_config(route_name='edit-note', permission='edit', renderer='templates/edit-note.jinja2')
+@view_config(route_name='edit-note', permission='edit', renderer='templates/edit-note.jinja2',
+             decorator=embeddable)
 def edit_note(context: NoteResource, request: Request):
     if request.method == 'POST':
         _save_or_create_note(context.note, request)
@@ -76,7 +78,8 @@ def edit_note(context: NoteResource, request: Request):
                 note=context.note)
 
 
-@view_config(route_name='new-note', permission='edit', renderer='templates/edit-note.jinja2', require_csrf=True)
+@view_config(route_name='new-note', permission='edit', renderer='templates/edit-note.jinja2', require_csrf=True,
+             decorator=embeddable)
 def create_note(request: Request):
     note = postdb.Post(None,
                        user_id=request.user.user_id,

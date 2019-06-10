@@ -12,3 +12,15 @@
 .media .is-48x48 .icon.avatar {
   font-size: 40px;
 }
+
+iframe {
+  width: 100%;
+  min-height: 500px;
+  border: 1px solid black;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+html.embedded .section {
+  padding: 1rem;
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sv" class="has-navbar-fixed-top">
+<html lang="sv" class="{{ 'embedded' if request.embedded else 'has-navbar-fixed-top' }}">
 
 <head>
   <meta charset="utf-8">
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="{{ 'unsafe:static/css/unsafe.css' | static_url }}">
 
   <script defer src="{{ 'unsafe:static/js/unsafe.js' | static_url }}"></script>
+  <script defer src="{{ 'unsafe:static/js/embedded.js' | static_url }}"></script>
   <script defer src="https://use.fontawesome.com/releases/v5.8.2/js/all.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.1.2/handlebars.min.js"></script>
 </head>
@@ -22,7 +23,7 @@
   const BASE_URL = "{{ request.application_url }}";
 </script>
 
-{% if not embedded %}
+{% if not request.embedded %}
   {% include "navbar.jinja2" %}
 
   {% block heading %}
@@ -47,7 +48,7 @@
   {% endblock content %}
 </section>
 
-{% if not embedded %}
+{% if not request.embedded %}
   <footer class="footer">
     <div class="content has-text-centered">
       <p>

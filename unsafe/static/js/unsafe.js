@@ -15,6 +15,7 @@ const Burger = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
   Burger.init();
+  Embedded.fixupLinks();
 });

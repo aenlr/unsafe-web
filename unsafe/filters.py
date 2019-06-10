@@ -1,6 +1,11 @@
 from datetime import datetime
-import math
 from typing import Union
+
+import math
+from jinja2 import contextfilter
+from pyramid.threadlocal import get_current_request
+
+from . import embed
 
 
 def abbrev_filter(value: str, maxlen=40):
@@ -56,3 +61,9 @@ def since_filter(value: Union[datetime, str]):
         return f'{minutes} minuter' if minutes > 1 else '1 minut'
     else:
         return f'{delta.seconds} sekunder'
+
+
+@contextfilter
+def embedded_url_filter(ctx, route_name, *elements, **kw):
+    request = ctx.get('request') or get_current_request()
+    return embed.embedded_route_url(request, route_name, *elements, **kw)

@@ -5,6 +5,9 @@
 {% block content %}
   <main class="container">
     <form method="get" action="{{ request.current_route_url() }}">
+
+      <input name="embedded" type="hidden" value="{{ request.embedded }}">
+
       <nav class="level">
         <!-- Left side -->
         <div class="level-left">
@@ -24,7 +27,7 @@
             <div class="field has-addons">
               <p class="control">
                 <a class="button is-static">
-                  Till datum:
+                  Till:
                 </a>
               </p>
               <p class="control">
@@ -85,7 +88,7 @@
 
             <a class="button is-small is-danger"
                onclick="deleteNote(event)"
-               href="{{ 'note-action' | route_url(_query=(('action', 'delete'), ('id',note.post_id))) }}">
+               href="{{ 'note-action' | route_url(_query={'action': 'delete', 'id': note.post_id}) }}">
                 <span class=" icon is-small">
                   <i class="fas fa-trash-alt"></i>
                 </span>
