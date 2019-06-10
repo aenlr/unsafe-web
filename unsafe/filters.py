@@ -1,11 +1,13 @@
 from datetime import datetime
-from typing import Union
+from typing import Union, Dict, Callable
 
 import math
+
 from jinja2 import contextfilter
+from pyramid.config import Configurator
 from pyramid.threadlocal import get_current_request
 
-from . import embed
+from .embed import embedded_route_url
 
 
 def abbrev_filter(value: str, maxlen=40):
@@ -66,4 +68,18 @@ def since_filter(value: Union[datetime, str]):
 @contextfilter
 def embedded_url_filter(ctx, route_name, *elements, **kw):
     request = ctx.get('request') or get_current_request()
-    return embed.embedded_route_url(request, route_name, *elements, **kw)
+    return embedded_route_url(request, route_name, *elements, **kw)
+
+
+def jinja2_filters() -> Dict[str, Callable]:
+    import pyramid_jinja2.filters
+    return dict(abbrev=abbrev_filter,
+                embedded_url=embedded_url_filter,
+                since=since_filter,
+                route_url=pyramid_jinja2.filters.route_url_filter,
+                static_url=pyramid_jinja2.filters.static_url_filter,
+                )
+
+
+def includeme(config: Configurator):
+    config.registry.settings['jinja2.filters'] = jinja2_filters()

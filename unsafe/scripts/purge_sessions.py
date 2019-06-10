@@ -12,5 +12,5 @@ def main(argv=sys.argv):
     print(f'Purged {count} sessions')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     sys.exit(main() or 0)

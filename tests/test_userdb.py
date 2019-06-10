@@ -1,28 +1,26 @@
 import os
 import pytest
 
-import unsafe
-from unsafe import db
-from unsafe import userdb
+import unsafe.db as db
+import unsafe.db.user as userdb
 
-test_databasename = 'users-test.db'
+DBNAME = 'test-users.db'
 
 
 def setup_module(module):
     global original_database
 
     try:
-        os.remove(test_databasename)
+        os.remove(DBNAME)
     except FileNotFoundError:
         pass
 
-    sql_path = os.path.join(unsafe.__path__[0], 'sql')
-    db.runscripts(test_databasename, 'db-create.sql', 'db-init.sql', script_path=sql_path)
+    db.init(DBNAME)
 
 
 @pytest.fixture
 def conn():
-    c = db.connect(test_databasename)
+    c = db.connect(DBNAME)
     yield c
     c.close()
 

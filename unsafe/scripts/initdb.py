@@ -10,7 +10,7 @@ import argparse
 import os
 import sys
 
-import unsafe.db
+from unsafe import db
 
 
 def main(argv=sys.argv):
@@ -22,7 +22,7 @@ def main(argv=sys.argv):
     if args.reset and os.path.exists(args.db):
         os.remove(args.db)
 
-    unsafe.db.init(args.db)
+    db.init(args.db)
 
 
 if __name__ == '__main__':  # pragma: no cover

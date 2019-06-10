@@ -3,7 +3,7 @@ from pyramid.request import Request
 from pyramid.security import Allow
 from pyramid.view import view_config
 
-from . import postdb
+from . import db
 from .app import RootContextFactory
 from .embed import embeddable
 
@@ -11,7 +11,7 @@ from .embed import embeddable
 class NotesFactory(RootContextFactory):
 
     def __getitem__(self, post_id):
-        note = postdb.find_post(self.request.db, post_id)
+        note = db.post.find_post(self.request.db, post_id)
         if note:
             return NoteResource(note)
 
@@ -19,7 +19,7 @@ class NotesFactory(RootContextFactory):
 
 
 class NoteResource:
-    def __init__(self, note: postdb.Post):
+    def __init__(self, note: db.post.Post):
         self.note = note
 
     @property
@@ -43,21 +43,21 @@ def delete_note(request):
     - Vulnerable to CSRF
     """
 
-    postdb.delete_post(request.db, request.params['id'])
+    db.post.delete_post(request.db, request.params['id'])
     return HTTPNoContent()
 
 
-@view_config(route_name='notes', permission='view', renderer='templates/list-notes.jinja2')
+@view_config(route_name='notes', permission='view', renderer='list-notes.jinja2')
 def notes_listing(request):
     search = request.params.get('search', '')
     from_date = request.params.get('from', '')
     to_date = request.params.get('to', '')
-    notes = postdb.find_posts(request.db,
-                              public=False,
-                              user_id=request.user.user_id,
-                              from_date=from_date,
-                              to_date=to_date,
-                              search=search)
+    notes = db.post.find_posts(request.db,
+                               public=False,
+                               user_id=request.user.user_id,
+                               from_date=from_date,
+                               to_date=to_date,
+                               search=search)
 
     return {
         'notes': notes,
@@ -67,7 +67,7 @@ def notes_listing(request):
     }
 
 
-@view_config(route_name='edit-note', permission='edit', renderer='templates/edit-note.jinja2',
+@view_config(route_name='edit-note', permission='edit', renderer='edit-note.jinja2',
              decorator=embeddable)
 def edit_note(context: NoteResource, request: Request):
     if request.method == 'POST':
@@ -78,12 +78,12 @@ def edit_note(context: NoteResource, request: Request):
                 note=context.note)
 
 
-@view_config(route_name='new-note', permission='edit', renderer='templates/edit-note.jinja2', require_csrf=True,
+@view_config(route_name='new-note', permission='edit', renderer='edit-note.jinja2', require_csrf=True,
              decorator=embeddable)
 def create_note(request: Request):
-    note = postdb.Post(None,
-                       user_id=request.user.user_id,
-                       content=request.params.get('note', ''))
+    note = db.post.Post(None,
+                        user_id=request.user.user_id,
+                        content=request.params.get('note', ''))
     if request.method == 'POST':
         _save_or_create_note(note, request)
         return HTTPFound(location=request.route_url('notes'))
@@ -95,7 +95,7 @@ def create_note(request: Request):
 def _save_or_create_note(note, request: Request):
     content: str = request.params['note']
     note.content = content.replace('\r', '')
-    return postdb.save_post(request.db, note)
+    return db.post.save_post(request.db, note)
 
 
 def includeme(config):

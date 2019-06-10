@@ -7,8 +7,7 @@ from pyramid.request import Request
 from pyramid.security import Allow, Everyone, Authenticated
 from pyramid.view import view_config
 
-from . import postdb
-from . import userdb
+from . import db
 from .app import RootContextFactory
 
 
@@ -18,7 +17,7 @@ class PostsFactory(RootContextFactory):
     ]
 
     def __getitem__(self, post_id):
-        post = postdb.find_post(self.request.db, post_id)
+        post = db.post.find_post(self.request.db, post_id)
         if post:
             return PostResource(post)
 
@@ -26,7 +25,7 @@ class PostsFactory(RootContextFactory):
 
 
 class PostResource:
-    def __init__(self, post: postdb.Post):
+    def __init__(self, post: db.post.Post):
         self.post = post
 
     @property
@@ -38,27 +37,27 @@ class PostResource:
         ]
 
 
-@view_config(route_name='posts', permission='view', renderer='templates/list-posts.jinja2')
+@view_config(route_name='posts', permission='view', renderer='list-posts.jinja2')
 def posts_listing(request: Request):
     """Main posts listing"""
     user_id = request.params.get('user')
     search = request.params.get('search', '')
     from_date = request.params.get('from', '')
     to_date = request.params.get('to', '')
-    posts = postdb.find_posts(request.db,
-                              public=True,
-                              user_id=user_id,
-                              from_date=from_date,
-                              to_date=to_date,
-                              search=search)
+    posts = db.post.find_posts(request.db,
+                               public=True,
+                               user_id=user_id,
+                               from_date=from_date,
+                               to_date=to_date,
+                               search=search)
 
     unique_userids = set()
     for post in posts:
-        post.replies = postdb.find_posts(request.db, reply_to=post.post_id)
+        post.replies = db.post.find_posts(request.db, reply_to=post.post_id)
         unique_userids.update(reply.user_id for reply in post.replies)
         unique_userids.add(post.user_id)
 
-    users = {user_id: userdb.from_id(request.db, user_id) for user_id in unique_userids}
+    users = {user_id: db.user.from_id(request.db, user_id) for user_id in unique_userids}
 
     return {
         'users': users,
@@ -104,7 +103,7 @@ def like_post_json(context: PostResource, request):
     if not hmac.compare_digest(csrf_token, expected_csrf_token):
         raise BadCSRFToken()
 
-    post = postdb.like_post(request.db, context.post.post_id)
+    post = db.post.like_post(request.db, context.post.post_id)
     return post
 
 
@@ -123,7 +122,7 @@ def like_post(context: PostResource, request):
     - ``require_csrf=True`` checks csrf_token in the request body or an X-CSRF-Token header (which is not possible for
     browser generated form submissions) against the expected CSRF token.
     """
-    postdb.like_post(request.db, context.post.post_id)
+    db.post.like_post(request.db, context.post.post_id)
     return HTTPFound(request.current_request_url)
 
 

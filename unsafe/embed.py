@@ -30,11 +30,6 @@ def embedded_route_url(request: Request, route_name, *elements, **kw):
     return request.route_url(request, route_name, *elements, **kw)
 
 
-def register_request_property(config: Configurator) -> None:
-    config.add_request_method(_check_embedded_view, name='embedded', reify=True)
-    config.add_request_method(embedded_route_url, name='embedded_url')
-
-
 def embeddable(view_callable):
     def inner(context, request):
         response: Response = view_callable(context, request)
@@ -48,3 +43,8 @@ def embeddable(view_callable):
         return response
 
     return inner
+
+
+def includeme(config: Configurator):
+    config.add_request_method(_check_embedded_view, name='embedded', reify=True)
+    config.add_request_method(embedded_route_url, name='embedded_url')

@@ -3,6 +3,16 @@ import sqlite3
 from contextlib import contextmanager
 from typing import Iterator, Type, Union
 
+__all__ = [
+    'connect',
+    'connection',
+    'cursor',
+    'fetchall',
+    'fetchone',
+    'init',
+    'runscripts',
+]
+
 
 def init(db: Union[str, sqlite3.Connection]):
     """Initialize database, creating tables and loading initial data."""

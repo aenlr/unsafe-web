@@ -15,6 +15,7 @@ import os
 import time
 from typing import Optional
 
+from pyramid.config import Configurator
 from pyramid.interfaces import ISession
 from webob.cookies import SignedSerializer
 from zope.interface import implementer
@@ -378,3 +379,20 @@ def manage_changed(wrapped):
 
     changed.__doc__ = wrapped.__doc__
     return changed
+
+
+def includeme(config: Configurator):
+    from pyramid.csrf import SessionCSRFStoragePolicy
+
+    session_dbname = os.path.normpath(config.registry.settings.get('db.sessions', 'sessions.db'))
+    session_secret = os.environ.get('UNSAFE_SESSION_SECRET', 'secret')
+    session_factory = MySessionFactory(
+        database=session_dbname,
+        secret=session_secret,
+        # secret=None, # No cookie signing!
+        httponly=True,
+        # secure=True,
+        # query_param='session',
+        accept_client_session_id=False)
+    config.set_session_factory(session_factory)
+    config.set_csrf_storage_policy(SessionCSRFStoragePolicy())

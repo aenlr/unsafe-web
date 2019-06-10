@@ -27,7 +27,7 @@ test:
 	$(VENV)/bin/pytest
 
 clean:
-	rm -rf build dist .eggs .pytest_cache *-test.db sessions.db *.log
+	rm -rf build dist .eggs .pytest_cache test*.db sessions.db *.log
 	find . -name __pycache__ -delete
 
 reallyclean: clean cleandb

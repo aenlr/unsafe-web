@@ -12,19 +12,19 @@ from webtest import TestApp, TestResponse
 from unsafe.session import MySessionFactory
 from unsafe import db
 
-session_database = 'sessions-test.db'
+DBNAME = 'test-sessions.db'
 
 
 def setup_module():
     try:
-        os.remove(session_database)
+        os.remove(DBNAME)
     except FileNotFoundError:
         pass
 
 
 def make_session(request, **kwargs):
     secret = kwargs.get('secret', 'secret')
-    factory = MySessionFactory(secret, database=session_database, **kwargs)
+    factory = MySessionFactory(secret, database=DBNAME, **kwargs)
     return factory(request)
 
 
@@ -47,13 +47,13 @@ def save_session(session_id, userdata, expires_at=None, created_at=None, timeout
         expires_at = now + timeout
     if not created_at:
         created_at = now
-    with db.cursor(session_database) as cur:
+    with db.cursor(DBNAME) as cur:
         cur.execute('INSERT INTO session_store (session_id, expires_at, created_at, userdata) VALUES(?,?,?,?)',
                     (session_id, expires_at, created_at, json.dumps(userdata)))
 
 
 def load_session(session_id):
-    with db.cursor(session_database) as cur:
+    with db.cursor(DBNAME) as cur:
         cur.execute('SELECT userdata FROM session_store WHERE session_id = ?', (session_id,))
         row = cur.fetchone()
         return json.loads(row[0]) if row else None
@@ -125,7 +125,7 @@ def foo_bar_view(request):
 
 def make_app(view=foo_bar_view, *, secret: Optional[str] = 'secret', **kwargs) -> TestApp:
     config = Configurator(settings={})
-    session_factory = MySessionFactory(secret, database=session_database, **kwargs)
+    session_factory = MySessionFactory(secret, database=DBNAME, **kwargs)
     config.set_session_factory(session_factory)
     config.add_route('index', '/')
     config.add_view(route_name='index', view=view)
