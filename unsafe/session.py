@@ -120,6 +120,13 @@ def MySessionFactory(secret: str,
                             accept_client_session_id=accept_client_session_id)
 
 
+def purge_sessions(database='sessions.db'):
+    with db.cursor(database) as cur:
+        now = int(time.time())
+        cur.execute('DELETE FROM session_store WHERE expires_at >= ?', (now,))
+        return cur.rowcount
+
+
 class IdentityCookieSerializer:
     def dumps(self, x):
         return x

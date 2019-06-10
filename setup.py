@@ -46,6 +46,7 @@ setup(name='unsafe',
       entry_points={
           'console_scripts': [
               'unsafe-initdb = unsafe.scripts.initdb:main',
+              'unsafe-purge-sessions = unsafe.scripts.purge_sessions:main',
               'unsafe = unsafe.scripts.runner:main'
           ],
           'paste.app_factory': [
