@@ -12,7 +12,7 @@ rmenv:
 	rm -rf $(VENV)
 
 dev: develop
-	pip install -e .[dev]
+	$(VENV)/bin/pip install -e .[dev]
 
 initdb:
 	$(VENV)/bin/unsafe-initdb
@@ -21,10 +21,10 @@ cleandb:
 	rm -rf *.db
 
 build develop install sdist bdist check:
-	python setup.py $@
+	$(VENV)/bin/python setup.py $@
 
 test:
-	pytest
+	$(VENV)/bin/pytest
 
 clean:
 	rm -rf build dist .eggs .pytest_cache *-test.db sessions.db *.log
