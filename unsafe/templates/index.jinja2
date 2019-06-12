@@ -1,13 +1,26 @@
 {% extends "layout.jinja2" %}
 {% set title = 'Startsida' -%}
-{% set active_page = 'index' -%}
 
 {% block content %}
   <main class="container">
     <div class="content">
       <p>
-        En applikation för att demonstrera några vanliga säkerhetsbrister.
+        Denna applikation består av två delar.
       </p>
+
+      <ol>
+        <li>
+          Diskussion och demonstration av <a href="{{ 'topics' }}">säkerhetsproblem och sårbarheter</a>
+          i webb-applikationer.
+        </li>
+
+        <li>
+          Funktionerna <a href="{{ 'notes' | route_url }}">Anteckningar</a>
+          och <a href="{{ 'posts' | route_url }}">Inlägg</a> används för att
+          både demonstrera brister och visa hur de kan åtgärdas.
+        </li>
+      </ol>
+
     </div>
 
     <div class="content">

@@ -81,7 +81,7 @@ def login_view(request: Request):
 
 
 @view_config(route_name='logout', renderer='logout.jinja2')
-def logout_view(request):
+def logout_view(request: Request):
     """Logout view. Redirects to the login page."""
     headers = forget(request)
     request.session.invalidate()

@@ -1,0 +1,50 @@
+{% extends "layout.jinja2" %}
+{% block heading %}
+{% endblock %}
+{% block content %}
+  <div class="container">
+    <div class="tile is-ancestor">
+      <div class="tile is-2">
+        {% include "topics/menu.jinja2" %}
+      </div>
+
+      <div class="tile is-vertical is-parent">
+        {#
+        <div class="tile-is-child">
+          <section class="hero is-primary">
+            <div class="hero-body">
+              <div class="container">
+                <h1 class="title">
+                  {{ title }}
+                </h1>
+                <h2 class="subtitle">
+                  Osäker webb
+                </h2>
+              </div>
+            </div>
+          </section>
+        </div>
+        #}
+
+        <div class="tile is-child">
+          <h1 class="title">{{ title }}</h1>
+          {% block topic %}
+            <div class="content">
+              <p>
+                Använd menyn till vänster för att välja ett ämne.
+              </p>
+            </div>
+          {% endblock topic %}
+        </div>
+
+        <div class="tile is-child">
+          <div style="width: 100%">
+            <iframe></iframe>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+{% endblock content %}

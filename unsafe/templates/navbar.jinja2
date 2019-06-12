@@ -3,7 +3,9 @@
     ('index', 'Startsida'),
     ('notes', 'Anteckningar'),
     ('posts', 'Inlägg'),
+    ('topics', 'Sårbarheter'),
 ] -%}
+{% set active_page = active_page|default(request.matched_route.name) -%}
 
 <nav class="navbar is-fixed-top" role="navigation">
   <div class="container">

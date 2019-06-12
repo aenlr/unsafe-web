@@ -1,0 +1,30 @@
+<aside class="menu">
+  {% for section in menu %}
+    <p class="menu-label">
+      {{ section.title }}
+    </p>
+    {% if section.menu %}
+      <ul class="menu-list">
+        {% for section_menu in section.menu %}
+          <li>
+            <a class="{{ 'is-active' if active_topic == section_menu.topic else '' }}"
+               href="{{ 'topic' | route_url(topic=section_menu.topic) }}">
+              {{ section_menu.title }}
+            </a>
+            {% if section_menu.menu is defined %}
+              <ul>
+                {% for item in section_menu.menu %}
+                  <li>
+                    <a href="{{ 'topic' | route_url(topic=section_menu.topic, _anchor=item.topic) }}">
+                      {{ item.title }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endfor %}
+</aside>

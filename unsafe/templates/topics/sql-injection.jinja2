@@ -1,83 +1,9 @@
-{% extends "layout.jinja2" %}
-{% set title = 'Startsida' -%}
-{% set active_page = 'index' -%}
+{% extends "topics/base.jinja2" %}
 
-{% block content %}
-  <div class="container">
-    <div class="tile is-ancestor">
-      <div class="tile is-4">
-        <aside class="menu">
-          <p class="menu-label">
-            Allmänt
-          </p>
-          <ul class="menu-list">
-            <li><a>Cookies</a></li>
-            <li><a>Sessioner</a></li>
-          </ul>
-          <p class="menu-label">
-            Sårbarheter
-          </p>
-          <ul class="menu-list">
-            <li>
-              <a class="is-active">Sessionskapning</a>
-              <ul>
-                <li><a>Members</a></li>
-                <li><a>Plugins</a></li>
-                <li><a>Add a member</a></li>
-              </ul>
-            </li>
-          </ul>
+{% block topic %}
+  <h3>En sak</h3>
+  <a class="embed" href="{{ 'notes' | route_url(_query={'search':'semlor'}) }}">Test</a>
 
-          <ul class="menu-list">
-            <li><a>SQL Injection</a></li>
-          </ul>
-
-          <ul class="menu-list">
-            <li><a>Cross-Site Request Forgery (CSRF/XSRF)</a></li>
-          </ul>
-
-          <ul class="menu-list">
-            <li><a>Cross-Site Scripting (XSS)</a></li>
-          </ul>
-
-          <ul class="menu-list">
-            <li><a>XML-entiteter</a></li>
-          </ul>
-
-          <ul class="menu-list">
-            <li>
-              <a class="is-active">Bristande autentisering</a>
-              <ul>
-                <li><a>Lösenord</a></li>
-                <li><a>Plugins</a></li>
-                <li><a>Add a member</a></li>
-              </ul>
-            </li>
-          </ul>
-
-          <ul class="menu-list">
-            <li><a>Bristande behörighetskontroll</a></li>
-          </ul>
-
-        </aside>
-      </div>
-
-      <div class="tile is-vertical is-parent">
-        <div class="tile is-child">
-          <a class="embed" href="{{ 'notes' | route_url(_query={'search':'semlor'}) }}">Test</a>
-        </div>
-
-        <div class="tile is-child">
-          <main style="width: 100%">
-            <iframe></iframe>
-          </main>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-{% endblock content %}
-
-{% block scripts %}
-{% endblock scripts %}
+  <h3>En sak till</h3>
+  <a class="embed" href="{{ 'notes' | route_url(_query={'search':'semlor'}) }}">Test</a>
+{% endblock topic %}
