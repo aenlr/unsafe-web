@@ -47,7 +47,7 @@ def delete_note(request):
     return HTTPNoContent()
 
 
-@view_config(route_name='notes', permission='view', renderer='list-notes.jinja2')
+@view_config(route_name='notes', permission='view', renderer='notes/list-notes.jinja2')
 def notes_listing(request):
     search = request.params.get('search', '')
     from_date = request.params.get('from', '')
@@ -67,7 +67,7 @@ def notes_listing(request):
     }
 
 
-@view_config(route_name='edit-note', permission='edit', renderer='edit-note.jinja2',
+@view_config(route_name='edit-note', permission='edit', renderer='notes/edit-note.jinja2',
              decorator=embeddable)
 def edit_note(context: NoteResource, request: Request):
     if request.method == 'POST':
@@ -78,7 +78,7 @@ def edit_note(context: NoteResource, request: Request):
                 note=context.note)
 
 
-@view_config(route_name='new-note', permission='edit', renderer='edit-note.jinja2', require_csrf=True,
+@view_config(route_name='new-note', permission='edit', renderer='notes/edit-note.jinja2', require_csrf=True,
              decorator=embeddable)
 def create_note(request: Request):
     note = db.post.Post(None,

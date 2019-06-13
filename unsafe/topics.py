@@ -1,6 +1,6 @@
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid.request import Request
 from pyramid.renderers import render_to_response
-from pyramid.response import Response
 from pyramid.view import view_config
 
 MENU = [
@@ -41,12 +41,15 @@ def topics(request: Request):
 
 
 @view_config(route_name='topic')
-def topic(request: Request):
+def topic_view(request: Request):
     topic = request.matchdict['topic']
-    menu = next(menu
-                for section in MENU
-                for menu in section['menu']
-                if menu['topic'] == topic)
+    try:
+        menu = next(menu
+                    for section in MENU
+                    for menu in section['menu']
+                    if menu['topic'] == topic)
+    except StopIteration:
+        raise HTTPNotFound()
 
     value = dict(menu=MENU,
                  active_page='topics',

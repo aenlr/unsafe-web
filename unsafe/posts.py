@@ -37,7 +37,7 @@ class PostResource:
         ]
 
 
-@view_config(route_name='posts', permission='view', renderer='list-posts.jinja2')
+@view_config(route_name='posts', permission='view', renderer='posts/list-posts.jinja2')
 def posts_listing(request: Request):
     """Main posts listing"""
     user_id = request.params.get('user')
