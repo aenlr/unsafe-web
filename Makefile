@@ -27,8 +27,11 @@ build develop install sdist bdist check:
 test:
 	$(VENV)/bin/pytest
 
+coverage cov:
+	$(VENV)/bin/pytest --cov
+
 clean:
-	rm -rf build dist .eggs .pytest_cache test*.db sessions.db *.log
+	rm -rf build .coverage dist .eggs .pytest_cache test*.db sessions.db *.log
 	find . -name __pycache__ -delete
 
 reallyclean: clean cleandb
