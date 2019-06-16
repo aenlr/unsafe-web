@@ -43,7 +43,6 @@ setup(name='unsafe',
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
-      setup_requires=['pytest-runner'],
       extras_require={'dev': dev_extras, 'testing': testing_extras, 'docs': docs_extras},
       entry_points={
           'console_scripts': [
@@ -54,9 +53,5 @@ setup(name='unsafe',
           'paste.app_factory': [
               'main = unsafe:main',
           ],
-      },
-# entry_points="""\
-# [paste.app_factory]
-# main = unsafe:main
-# """,
+      }
 )
