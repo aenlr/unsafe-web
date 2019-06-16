@@ -145,6 +145,7 @@ def test_login_view_does_not_create_session():
 
 
 @pytest.mark.functional
+@pytest.mark.slow
 class TestLoginApp:
 
     def test_form(self, app):
@@ -172,7 +173,6 @@ class TestLoginApp:
 
         assert form.find('button', attrs={'name': 'submit'}) is not None
 
-    @pytest.mark.slow
     def test_submit(self, app: App):
         response: Response = app.get('https://test.com/login')
         assert response.status_code == 200
