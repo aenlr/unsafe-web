@@ -1,0 +1,12 @@
+[run]
+source =
+    unsafe
+    tests
+
+[paths]
+source =
+    unsafe
+
+[report]
+show_missing = true
+precision = 2

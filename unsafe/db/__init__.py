@@ -48,22 +48,11 @@ def includeme(config: Configurator):
     import os
     import logging
 
-    from pyramid.request import Request
-
-    import unsafe
-
     dbname = os.path.normpath(config.registry.settings.get('db.app', 'app.db'))
     logging.getLogger(__name__).info('Database: %s', dbname)
 
     # Initialize database on first run
-    if not os.path.exists(dbname):
-        scripts = ('db-create.sql', 'db-init.sql')
-        sql_path = os.path.join(unsafe.__path__[0], 'sql')
-        logging.getLogger(__name__).info('Running database scripts %s: %s', sql_path, ' '.join(scripts))
-        try:
-            db.runscripts(dbname, *scripts, script_path=sql_path)
-        except Exception:
-            os.remove(dbname)
-            raise
+    if not os.path.exists(dbname): # pragma: no cover
+        init(dbname)
 
     config.add_request_method(request_connection_factory(dbname), 'db', reify=True)
