@@ -7,14 +7,16 @@ requires = [
     'pyramid',
     'pyramid_jinja2',
     'pyramid_debugtoolbar',
+    'python-dateutil',
     'waitress',
 ]
 
 testing_extras = [
-    'webtest >= 1.3.1'
+    'beautifulsoup4',
     'pytest',
     'pytest-cov',
-    'pytest-runner'
+    'pytest-runner',
+    'webtest >= 1.3.1',
 ]
 
 docs_extras = [
