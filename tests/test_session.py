@@ -6,8 +6,7 @@ from typing import Optional
 
 from pyramid import testing
 from pyramid.config import Configurator
-from pyramid.response import Response
-from webtest import TestApp, TestResponse
+from webtest import TestApp as App, TestResponse as Response
 
 from unsafe.session import MySessionFactory
 from unsafe import db
@@ -18,7 +17,7 @@ DBNAME = 'test-sessions.db'
 def setup_module():
     try:
         os.remove(DBNAME)
-    except FileNotFoundError:
+    except FileNotFoundError: # pragma: no cover
         pass
 
 
@@ -60,9 +59,6 @@ def load_session(session_id):
 
 
 def request_with_session(session_id, session_data=None, cookie=None):
-    if session_data and not session_id:
-        session_id = os.urandom(16).hex()
-
     if not cookie and session_id:
         cookie = serialize_cookie(session_id)
 
@@ -78,9 +74,9 @@ def request_with_session(session_id, session_data=None, cookie=None):
     return request
 
 
-def make_response(request):
+def make_response(request) -> Response:
     response = request.response
-    request._process_response_callbacks(response)
+    getattr(request, '_process_response_callbacks')(response)
     return response
 
 
@@ -123,17 +119,17 @@ def foo_bar_view(request):
     return Response('OK')
 
 
-def make_app(view=foo_bar_view, *, secret: Optional[str] = 'secret', **kwargs) -> TestApp:
+def make_app(view=foo_bar_view, *, secret: Optional[str] = 'secret', **kwargs) -> App:
     config = Configurator(settings={})
     session_factory = MySessionFactory(secret, database=DBNAME, **kwargs)
     config.set_session_factory(session_factory)
     config.add_route('index', '/')
     config.add_view(route_name='index', view=view)
     app = config.make_wsgi_app()
-    return TestApp(app)
+    return App(app)
 
 
-def get(view=foo_bar_view, *, secret: Optional[str] = 'secret', **kwargs) -> TestResponse:
+def get(view=foo_bar_view, *, secret: Optional[str] = 'secret', **kwargs) -> Response:
     return make_app(view, secret=secret, **kwargs).get('/')
 
 

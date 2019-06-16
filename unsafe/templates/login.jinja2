@@ -27,8 +27,8 @@
               <input id="username" name="username" class="input" type="text" value="{{ username }}" required
                      autofocus autocomplete="username">
               <span class="icon is-small is-left">
-              <i class="fas fa-user"></i>
-            </span>
+                <i class="fas fa-user"></i>
+              </span>
             </div>
           </div>
 
@@ -37,8 +37,8 @@
             <div class="control has-icons-left ">
               <input id="password" name="password" class="input" type="password" required autocomplete="current-password">
               <span class="icon is-small is-left">
-              <i class="fas fa-lock"></i>
-            </span>
+                <i class="fas fa-lock"></i>
+              </span>
             </div>
           </div>
 
@@ -49,8 +49,9 @@
           </div>
 
           {% if failed %}
-            <p class="notification is-danger" role="alert">Inloggning misslyckades. Kontrollera användarnamn och
-              lösenord.</p>
+            <p class="notification is-danger" role="alert">
+              Inloggning misslyckades. Kontrollera användarnamn och lösenord.
+            </p>
           {% endif %}
 
         </form>

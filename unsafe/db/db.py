@@ -1,3 +1,4 @@
+import logging
 import os
 import sqlite3
 from contextlib import contextmanager
@@ -5,7 +6,6 @@ from typing import Iterator, Type, Union
 
 __all__ = [
     'connect',
-    'connection',
     'cursor',
     'fetchall',
     'fetchone',
@@ -35,6 +35,7 @@ def runscripts(db: Union[str, sqlite3.Connection], *scripts, script_path=None):
                 full_path = os.path.join(script_path, script)
             else:
                 full_path = script
+            logging.getLogger(__name__).info('Running database script: %s', full_path)
             with open(full_path, encoding='utf-8') as f:
                 sql = f.read()
                 cur.executescript(sql)
@@ -77,23 +78,6 @@ def cursor(db: Union[str, sqlite3.Connection], commit=None) -> Iterator[sqlite3.
                 conn.commit()
         finally:
             cur.close()
-
-
-@contextmanager
-def connection(database: str, commit=True, **kwargs) -> sqlite3.Connection:
-    """
-    Connect to database and return connection.
-
-    :param database: name of database file
-    :param commit: if True, commit transaction after successful execution of the with body
-    """
-    conn = connect(database, **kwargs)
-    try:
-        yield conn
-        if commit:
-            conn.commit()
-    finally:
-        conn.close()
 
 
 def maprow(mapping: Type, row: sqlite3.Row):

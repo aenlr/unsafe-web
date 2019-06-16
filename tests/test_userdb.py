@@ -8,11 +8,9 @@ DBNAME = 'test-users.db'
 
 
 def setup_module(module):
-    global original_database
-
     try:
         os.remove(DBNAME)
-    except FileNotFoundError:
+    except FileNotFoundError: # pragma: no cover
         pass
 
     db.init(DBNAME)
@@ -25,6 +23,7 @@ def conn():
     c.close()
 
 
+@pytest.mark.slow
 def test_create(conn):
     user = userdb.create(conn, 'bob', 'secret', 'bob@example.com')
     assert user.user_id is not None
@@ -55,6 +54,7 @@ def test_from_id_raises(conn):
         userdb.from_id(conn, -1)
 
 
+@pytest.mark.slow
 def test_authenticate(conn):
     user = userdb.authenticate(conn, 'joe', 'joe123')
     assert user is not None
@@ -64,11 +64,13 @@ def test_authenticate(conn):
     assert user.groups == ['author']
 
 
+@pytest.mark.slow
 def test_authenticate_failure(conn):
     user = userdb.authenticate(conn, 'joe', 'Joe123')
     assert user is None
 
 
+@pytest.mark.slow
 def test_authenticate_update_hash(conn):
     user = userdb.from_username(conn, 'bosse')
     assert user.password == 'hemligt'

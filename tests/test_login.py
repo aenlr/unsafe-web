@@ -1,12 +1,14 @@
 import os
 
+from bs4 import BeautifulSoup
+
 import pytest
 from pyramid import testing
 from pyramid.httpexceptions import HTTPFound
 from pyramid.response import Response
 from pyramid.testing import DummyRequest
 from webob.cookies import Cookie, Morsel
-from webtest import TestApp
+from webtest import TestApp as App
 
 import unsafe.app
 from unsafe.auth import login_view, logout_view
@@ -25,14 +27,14 @@ def setup_module():
     for fn in (DBNAME_APP, DBNAME_SESSIONS):
         try:
             os.remove(fn)
-        except FileNotFoundError:
+        except FileNotFoundError: # pragma: no cover
             pass
 
     db.init(DBNAME_APP)
 
 
 @pytest.fixture()
-def app() -> TestApp:
+def app() -> App:
     global_config = {}
     settings = {
         'db.app': DBNAME_APP,
@@ -40,7 +42,11 @@ def app() -> TestApp:
     }
 
     wsgi_app = unsafe.app.main(global_config, **settings)
-    return TestApp(wsgi_app)
+    return App(wsgi_app)
+
+
+def parse_html_response(response: Response):
+    return BeautifulSoup(response.unicode_body, "html.parser")
 
 
 def login(username, password, csrf_token='00112233445566778899aabbccddeeff', **kwargs):
@@ -78,7 +84,7 @@ def make_request(scheme='https', **kwargs) -> DummyRequest:
 
 def make_response(request) -> Response:
     response = request.response
-    request._process_response_callbacks(response)
+    getattr(request, '_process_response_callbacks')(response)
     return response
 
 
@@ -92,11 +98,8 @@ def parse_response_cookies(request_or_response) -> Cookie:
     return Cookie('\r\n'.join(headers))
 
 
-def get_response_cookie(rr_cookie, cookie_name) -> Morsel:
-    if isinstance(rr_cookie, Cookie):
-        cookies = rr_cookie
-    else:
-        cookies = parse_response_cookies(rr_cookie)
+def get_response_cookie(request_or_response, cookie_name) -> Morsel:
+    cookies = parse_response_cookies(request_or_response)
     key = cookie_name if isinstance(cookie_name, bytes) else cookie_name.encode('ascii')
     return cookies[key]
 
@@ -124,6 +127,7 @@ def test_csrf_token_not_reused():
     assert result['csrf_token'] != original_csrf_token
 
 
+@pytest.mark.slow
 def test_login_clears_csrf_cookie():
     _, response, value = login('admin', 'admin')
     assert isinstance(value, HTTPFound)
@@ -138,3 +142,64 @@ def test_login_view_does_not_create_session():
     cookies = parse_response_cookies(request)
     assert b'session' not in cookies
     assert 'session' not in cookies
+
+
+@pytest.mark.functional
+class TestLoginApp:
+
+    def test_form(self, app):
+        response: Response = app.get('/login')
+        assert response.status_code == 200
+
+        body = parse_html_response(response)
+        form = body.form
+        assert form['autocomplete'] == 'on'
+        assert form['method'] == 'post'
+
+        assert form.find(attrs={'name': 'csrf_token'}) is not None
+
+        username = form.find(attrs={'name': 'username'})
+        assert username['value'] == ''
+        assert username['required'] == ''
+        assert username['autocomplete'] == 'username'
+        assert username['autofocus'] == ''
+
+        password = form.find(attrs={'name': 'password'})
+        assert password['type'] == 'password'
+        assert password['required'] == ''
+        assert password['autocomplete'] == 'current-password'
+        assert not password.get('value')
+
+        assert form.find('button', attrs={'name': 'submit'}) is not None
+
+    @pytest.mark.slow
+    def test_submit(self, app: App):
+        response: Response = app.get('https://test.com/login')
+        assert response.status_code == 200
+        assert 'session' not in app.cookies
+        assert 'csrf_token' in app.cookies
+
+        params = dict(csrf_token=app.cookies['csrf_token'],
+                      username='bosse',
+                      password='hemligt',
+                      submit='')
+
+        response = app.post('https://test.com/login', params)
+        assert response.status_code == 302
+        assert response.headers['Location'] == 'https://test.com/'
+        assert 'session' in app.cookies
+        assert 'csrf_token' not in app.cookies
+
+        response = app.get(response.headers['Location'])
+        assert response.status_code == 200
+        assert b'<title>Startsida' in response.body
+
+    def test_bad_csrf_token(self, app: App):
+        response: Response = app.get('/login')
+        assert response.status_code == 200
+        assert 'csrf_token' in app.cookies
+
+        params = dict(csrf_token='x', username='y', password='z', submit='')
+        response = app.post('/login', params, expect_errors=True)
+        assert response.status_code == 400
+        assert response.status == '400 Bad CSRF Token'
