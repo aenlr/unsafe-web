@@ -7,6 +7,7 @@ all:
 
 venv:
 	python3 -m venv $(VENV)
+	$(VENV)/bin/pip install --upgrade pip
 
 rmenv:
 	rm -rf $(VENV)
