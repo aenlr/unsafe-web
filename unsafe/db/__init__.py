@@ -1,14 +1,26 @@
+import os
+import sqlite3
+from typing import Union
+
 from pyramid.config import Configurator
 from pyramid.request import Request
 
-from .db import *
+from . import note
 from . import post
 from . import user
+from .db import *
+
+
+def init(db: Union[str, sqlite3.Connection]):
+    """Initialize database, creating tables and loading initial data."""
+    pkg_path = os.path.dirname(__file__)
+    sql_path =  os.path.normpath(os.path.join(pkg_path, '..', 'sql'))
+    runscripts(db, 'db-create.sql', 'db-init.sql', script_path=sql_path)
 
 
 def request_connection_factory(dbname: str):
     def get_connection(request: Request):
-        conn = db.connect(dbname)
+        conn = connect(dbname)
 
         def commit_callback(request):
             if request.exception is not None:
@@ -52,7 +64,8 @@ def includeme(config: Configurator):
     logging.getLogger(__name__).info('Database: %s', dbname)
 
     # Initialize database on first run
-    if not os.path.exists(dbname): # pragma: no cover
+    if not os.path.exists(dbname):  # pragma: no cover
         init(dbname)
 
-    config.add_request_method(request_connection_factory(dbname), 'db', reify=True)
+    config.add_request_method(request_connection_factory(dbname), 'db',
+                              reify=True)

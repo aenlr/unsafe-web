@@ -1,1 +1,1 @@
-from .app import main # pragma: no cover
+from .app import main  # pragma: no cover

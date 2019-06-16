@@ -6,6 +6,9 @@ from pyramid.security import (
 from pyramid.view import view_config
 
 
+__all__ = ['main']
+
+
 class RootContextFactory:
     def __init__(self, request):
         self.request = request
@@ -39,7 +42,8 @@ def main(global_config, **settings):
     config.set_root_factory(RootContextFactory)
 
     # Serve static files - in production this is offloaded to nginx
-    config.add_static_view(name='static', path='unsafe:static', cache_max_age=0)
+    config.add_static_view(name='static',
+                           path='unsafe:static', cache_max_age=0)
 
     # Base routes
     config.add_route('index', '/')

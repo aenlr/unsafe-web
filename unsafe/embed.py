@@ -2,13 +2,6 @@ from pyramid.config import Configurator
 from pyramid.request import Request
 from pyramid.response import Response
 
-_truthy = ('True', 'true', '1', '')
-
-
-def _check_embedded_view(request: Request):
-    embedded: str = request.params.get('embedded')
-    return embedded in _truthy
-
 
 def embedded_route_url(request: Request, route_name, *elements, **kw):
     if request.embedded:
@@ -45,6 +38,14 @@ def embeddable(view_callable):
     return inner
 
 
+_truthy = ('True', 'true', '1', '')
+
+
+def _check_view(request: Request):
+    embedded: str = request.params.get('embedded')
+    return embedded in _truthy
+
+
 def includeme(config: Configurator):
-    config.add_request_method(_check_embedded_view, name='embedded', reify=True)
+    config.add_request_method(_check_view, name='embedded', reify=True)
     config.add_request_method(embedded_route_url, name='embedded_url')

@@ -14,15 +14,15 @@ def abbrev_filter(value: str, maxlen=40):
     if not value:
         return value
     try:
-        i = value.index('\n')
-        clipped = i + 1 < len(value)
-        value = value[:i]
+        value = value[:value.index('\n')]
     except ValueError:
-        clipped = False
+        pass
 
     if value.endswith(':'):
         value = value[:-1]
         clipped = True
+    else:
+        clipped = False
 
     if len(value) > maxlen:
         value = value[0:maxlen]
@@ -31,7 +31,8 @@ def abbrev_filter(value: str, maxlen=40):
     return value + '\u2026' if clipped else value
 
 
-def since_filter(value: Union[datetime, str], now: Optional[Union[datetime, str]] = None):
+def since_filter(value: Union[datetime, str],
+                 now: Optional[Union[datetime, str]] = None):
     if not value:
         return ''
 

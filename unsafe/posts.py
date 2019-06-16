@@ -1,4 +1,5 @@
 import hmac
+from typing import Set
 
 from pyramid.csrf import get_csrf_token
 from pyramid.exceptions import BadCSRFToken
@@ -37,7 +38,8 @@ class PostResource:
         ]
 
 
-@view_config(route_name='posts', permission='view', renderer='posts/list-posts.jinja2')
+@view_config(route_name='posts', permission='view',
+             renderer='posts/list-posts.jinja2')
 def posts_listing(request: Request):
     """Main posts listing"""
     user_id = request.params.get('user')
@@ -45,19 +47,19 @@ def posts_listing(request: Request):
     from_date = request.params.get('from', '')
     to_date = request.params.get('to', '')
     posts = db.post.find_posts(request.db,
-                               public=True,
                                user_id=user_id,
                                from_date=from_date,
                                to_date=to_date,
                                search=search)
 
-    unique_userids = set()
+    unique_userids: Set[int] = set()
     for post in posts:
         post.replies = db.post.find_posts(request.db, reply_to=post.post_id)
         unique_userids.update(reply.user_id for reply in post.replies)
         unique_userids.add(post.user_id)
 
-    users = {user_id: db.user.from_id(request.db, user_id) for user_id in unique_userids}
+    users = {user_id: db.user.from_id(request.db, user_id)
+             for user_id in unique_userids}
 
     return {
         'users': users,
@@ -79,9 +81,11 @@ def like_post_json(context: PostResource, request):
 
     This action is CSRF-safe thanks to:
 
-    - Requires a POST
-    - Browser form submission cannot post JSON (only ``application/x-www-form-urlencoded``)
-    - CORS/SOP prevent scripts on `external pages` from posting unless a CORS policy allows it.
+    - Accepting only POST requests
+    - Browsers cannot submit JSON from forms
+      (only ``application/x-www-form-urlencoded``)
+    - CORS/SOP prevent scripts on `external pages` from posting
+      unless a CORS policy allows it.
 
     Abbreviations:
 
@@ -94,10 +98,11 @@ def like_post_json(context: PostResource, request):
     # In case there is a CORS policy in place we also require the CSRF token
     # to be included in the JSON request.
     #
-    # We can get the same effect by setting require_csrf=True which will require
-    # the request to include an X-CSRF-Token header.
+    # We can get the same effect by setting require_csrf=True which will
+    # require the request to include an X-CSRF-Token header.
     #
-    # Calling pyramid.csrf.check_csrf_token would also achieve the same thing by checking the X-CSRF-Token header.
+    # Calling pyramid.csrf.check_csrf_token would also achieve the same thing
+    # by checking the X-CSRF-Token header.
     csrf_token = request_body.get('csrf_token', '')
     expected_csrf_token = get_csrf_token(request)
     if not hmac.compare_digest(csrf_token, expected_csrf_token):
@@ -118,9 +123,11 @@ def like_post(context: PostResource, request):
 
     Make unsafe by removing constraints:
 
-    - ``request_method='POST'`` requires that the request is a POST, avoiding destructive drive-by GET requests
-    - ``require_csrf=True`` checks csrf_token in the request body or an X-CSRF-Token header (which is not possible for
-    browser generated form submissions) against the expected CSRF token.
+    - ``request_method='POST'`` requires that the request is a POST,
+      avoiding destructive drive-by GET requests
+    - ``require_csrf=True`` checks csrf_token in the request body or an
+      X-CSRF-Token header against the expected CSRF token
+      (passing headers is not possible in browser form submissions).
     """
     db.post.like_post(request.db, context.post.post_id)
     return HTTPFound(request.current_request_url)
@@ -128,5 +135,11 @@ def like_post(context: PostResource, request):
 
 def includeme(config):
     config.add_route('posts', '/posts', factory=PostsFactory)
-    config.add_route('post', pattern='/posts/{post}', traverse='/{post}', factory=PostsFactory)
-    config.add_route('like-post', pattern='/posts/{post}/like', traverse='/{post}', factory=PostsFactory)
+    config.add_route('post',
+                     pattern='/posts/{post}',
+                     traverse='/{post}',
+                     factory=PostsFactory)
+    config.add_route('like-post',
+                     pattern='/posts/{post}/like',
+                     traverse='/{post}',
+                     factory=PostsFactory)

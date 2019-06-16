@@ -29,15 +29,13 @@ class User:
     """User details"""
     user_id: int
     username: str
-    email: str
+    email: Optional[str]
     password: str
     groups: List[str]
-    admin: bool = False
 
     def __post_init__(self):
-        self.admin = bool(self.admin)
-        if isinstance(self.groups, (str,)):
-            self.groups = [g for g in self.groups.split()]
+        if isinstance(self.groups, str):
+            self.groups = self.groups.split()
 
 
 class UserNotFoundError(Exception):
@@ -53,23 +51,31 @@ def from_username(conn, username: str) -> Optional[User]:
 
     with db.cursor(conn) as cur:
         return db.fetchone(cur, User,
-                           'SELECT user_id, username, password, email, groups FROM user WHERE username = ?',
+                           'SELECT user_id, username, password, email, groups '
+                           'FROM user WHERE username = ?',
                            (username,))
 
 
 def from_id(conn, user_id: int) -> User:
-    """Lookup user by id, raising :class:`UserNotFoundError` if the user id is invalid"""
+    """Lookup user by id.
+
+    Returns a :class:`User` object if `user_id` is valid,
+    otherwise raises :exc:`UserNotFoundError`.
+    """
 
     with db.cursor(conn) as cur:
         user = db.fetchone(cur, User,
-                           'SELECT user_id, username, password, email, groups FROM user WHERE user_id = ?',
+                           'SELECT user_id, username, password, email, groups '
+                           'FROM user WHERE user_id = ?',
                            (user_id,))
         if not user:
             raise UserNotFoundError('Invalid user id')
         return user
 
 
-def authenticate(conn, username: str, password: Union[str, bytes]) -> Optional[User]:
+def authenticate(conn,
+                 username: str,
+                 password: Union[str, bytes]) -> Optional[User]:
     """User password authentication.
 
     :arg username:
@@ -79,7 +85,8 @@ def authenticate(conn, username: str, password: Union[str, bytes]) -> Optional[U
         Password to verify.
 
     :returns:
-        A :class:`User` object if the username and password are correct, otherwise ``None``.
+        A :class:`User` object if the username and password are correct,
+        otherwise ``None``.
     """
 
     user = from_username(conn, username)
@@ -91,7 +98,8 @@ def authenticate(conn, username: str, password: Union[str, bytes]) -> Optional[U
         return None
 
     if new_hash:
-        # The stored hash is using a deprecated algorithm - update to the preferred algorithm.
+        # The stored hash is using a deprecated algorithm.
+        # Replace the hash with using the preferred algorithm.
         _replace_user_hash(conn, user.user_id, new_hash)
         user.password = new_hash
 
@@ -100,10 +108,13 @@ def authenticate(conn, username: str, password: Union[str, bytes]) -> Optional[U
 
 def _replace_user_hash(conn, user_id, new_hash):
     with db.cursor(conn) as cur:
-        cur.execute('UPDATE user SET password = ? WHERE user_id = ?', (new_hash, user_id))
+        cur.execute('UPDATE user SET password = ? WHERE user_id = ?',
+                    (new_hash, user_id))
 
 
-def create(conn, username: str, password: Union[str, bytes], email: Optional[str] = None,
+def create(conn,
+           username: str,
+           password: Union[str, bytes], email: Optional[str] = None,
            groups: List[str] = None) -> User:
     """Create a new user.
 
@@ -136,7 +147,8 @@ def create(conn, username: str, password: Union[str, bytes], email: Optional[str
     hash = pwdctx.hash(password)
     groups_value = ' '.join(groups) if groups else ''
     with db.cursor(conn) as cur:
-        cur.execute('INSERT INTO user (username, password, email, groups) VALUES(?,?,?,?)',
+        cur.execute('INSERT INTO user(username, password, email, groups)'
+                    'VALUES(?,?,?,?)',
                     (username, hash, email, groups_value))
         user_id = cur.lastrowid
 
@@ -144,4 +156,4 @@ def create(conn, username: str, password: Union[str, bytes], email: Optional[str
                 username=username,
                 password=hash,
                 email=email,
-                groups=(groups or []))
+                groups=groups or [])

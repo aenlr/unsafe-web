@@ -1,7 +1,8 @@
 """
 Simple session store example.
 
-To demonstrate unsafe practices there are settings introduce security vulnerabilties.
+There are settings to introduce security vulnerabilties for demonstration
+purposes.
 
 Setting ``secret`` to *None* disables cookie signing.
 
@@ -14,6 +15,7 @@ import json
 import os
 import time
 from typing import Optional
+import datetime
 
 from pyramid.config import Configurator
 from pyramid.interfaces import ISession
@@ -104,7 +106,8 @@ def MySessionFactory(secret: str,
             ''')
 
     if secret:
-        cookie_serializer = SignedSerializer(secret, salt=salt, hashalg=hashalg)
+        cookie_serializer = SignedSerializer(secret, salt=salt,
+                                             hashalg=hashalg)
     else:
         cookie_serializer = IdentityCookieSerializer()
 
@@ -128,6 +131,30 @@ def purge_sessions(database='sessions.db'):
         return cur.rowcount
 
 
+def remove_sessions(session_ids, database='sessions.db'):
+    with db.cursor(database) as cur:
+        cur.executemany('DELETE FROM session_store WHERE session_id = ?',
+                        (session_ids,))
+        return cur.rowcount
+
+
+def expire_sessions(expiry_time=None, database='sessions.db'):
+    with db.cursor(database) as cur:
+        if expiry_time is None:
+            expiry_time = time.time()
+        elif isinstance(expiry_time, datetime.date):
+            expiry_time = time.mktime(expiry_time.timetuple())
+        elif isinstance(expiry_time, str):
+            dt = datetime.datetime.fromisoformat(expiry_time)
+            expiry_time = time.mktime(dt.timetuple())
+        elif not isinstance(expiry_time, (int, float)):
+            raise ValueError()
+        expiry_time = int(expiry_time)
+        cur.execute('DELETE FROM session_store WHERE expires_at >= ?',
+                    (expiry_time,))
+        return cur.rowcount
+
+
 class IdentityCookieSerializer:
     def dumps(self, x):
         return x
@@ -140,7 +167,7 @@ def _session_factory(*,
                      cookie_serializer: SignedSerializer,
                      cookie_name: str,
                      path: str,
-                     domain: str,
+                     domain: Optional[str],
                      database: str,
                      timeout: int,
                      samesite: str,
@@ -149,7 +176,6 @@ def _session_factory(*,
                      query_param: Optional[str],
                      accept_client_session_id: bool
                      ):
-
     def new_expiry_time():
         return int(time.time()) + timeout
 
@@ -216,13 +242,14 @@ def _session_factory(*,
 
         def invalidate(self):
             """ Invalidate the session.
-            Delete persistent session data, invalidate session id and reset the session
-            object to new state.
+            Delete persistent session data, invalidate session id and reset
+            the session object to new state.
 
             An invalidated session may be used after the call to ``invalidate``
-            with the effect that a new session is created to store the data. This
-            enables workflows requiring an entirely new session, such as in the
-            case of changing privilege levels or preventing fixation attacks.
+            with the effect that a new session is created to store the data.
+            This enables workflows requiring an entirely new session, such as
+            in the case of changing privilege levels or preventing fixation
+            attacks.
             """
             if self._session_id:
                 with db.cursor(database) as cur:
@@ -255,7 +282,7 @@ def _session_factory(*,
                     self._created = int(time.time())
 
         def _save(self, request, response):
-            """Response callback that persists session data and manages cookies"""
+            """Response callback to persist session data and manages cookies"""
             if self._dirty:
                 if self._new:
                     self._store_new_session(request, response)
@@ -267,18 +294,17 @@ def _session_factory(*,
                 self._update_expiry_time()
 
         def _store_new_session(self, request, response):
-            """Persist session data and set session cookie
-            :param request:
-            """
+            """Persist session data and set session cookie"""
             if not self._session_id:
                 self._session_id = new_session_id()
             expires_at = new_expiry_time()
             userdata = json.dumps(self)
             with db.cursor(database) as cur:
-                cur.execute('INSERT INTO session_store(session_id, expires_at, created_at, userdata) '
-                            'VALUES (:session_id, :expires_at, :created_at, :userdata)',
-                            dict(session_id=self._session_id, expires_at=expires_at, created_at=self._created,
-                                 userdata=userdata))
+                cur.execute('INSERT INTO session_store'
+                            '(session_id, expires_at, created_at, userdata)'
+                            'VALUES (?, ?, ?, ?)',
+                            (self._session_id, expires_at, self._created,
+                             userdata))
 
             cookie_val = cookie_serializer.dumps(self._session_id)
             set_session_cookie(request, response, cookie_val)
@@ -288,23 +314,29 @@ def _session_factory(*,
             expires_at = new_expiry_time()
             userdata = json.dumps(self)
             with db.cursor(database) as cur:
-                cur.execute('UPDATE session_store SET expires_at = ?, userdata = ? WHERE session_id = ?',
-                            (expires_at, userdata, self._session_id))
+                cur.execute(
+                    'UPDATE session_store SET expires_at = ?, userdata = ?'
+                    'WHERE session_id = ?',
+                    (expires_at, userdata, self._session_id))
 
         def _update_expiry_time(self):
             """Update expiry time for session"""
             expires_at = new_expiry_time()
             with db.cursor(database) as cur:
-                cur.execute('UPDATE session_store SET expires_at = ? WHERE session_id = ?',
-                            (expires_at, self._session_id))
+                cur.execute(
+                    'UPDATE session_store SET expires_at = ? '
+                    'WHERE session_id = ?',
+                    (expires_at, self._session_id))
 
         def _load(self):
             """Load session state from sqlite database if not yet loaded"""
             if not self._loaded:
                 self._loaded = True
                 with db.cursor(database) as cur:
-                    cur.execute('SELECT expires_at, created_at, userdata FROM session_store WHERE session_id = ?',
-                                (self._session_id,))
+                    cur.execute(
+                        'SELECT expires_at, created_at, userdata'
+                        ' FROM session_store WHERE session_id = ?',
+                        (self._session_id,))
                     row = cur.fetchone()
                     if row and time.time() < row[0]:
                         # Existing non-expired session
@@ -315,7 +347,7 @@ def _session_factory(*,
                     else:
                         # Non-existing or expired session
                         if accept_client_session_id:
-                            # Oops, accepting session id from client --> session fixation
+                            # Using client session id --> session fixation
                             self._created = int(time.time())
                             self._new = row is None
                             self._reset_cookie = False
@@ -333,7 +365,8 @@ def _session_factory(*,
         def _delete_session(self, cur):
             """Delete session state using the given database cursor"""
             if self._session_id:
-                cur.execute('DELETE FROM session_store WHERE session_id = ?', (self._session_id,))
+                cur.execute('DELETE FROM session_store WHERE session_id = ?',
+                            (self._session_id,))
                 self._session_id = None
                 self._reset_cookie = True
 
@@ -371,7 +404,7 @@ def manage_accessed(wrapped):
 
 
 def manage_changed(wrapped):
-    """Wrap a dict mutator to update the session dirty flag and creation time"""
+    """Wrap a dict mutator to update session dirty flags and creation time"""
 
     def changed(session, *arg, **kw):
         session.changed()
@@ -384,7 +417,8 @@ def manage_changed(wrapped):
 def includeme(config: Configurator):
     from pyramid.csrf import SessionCSRFStoragePolicy
 
-    session_dbname = os.path.normpath(config.registry.settings.get('db.sessions', 'sessions.db'))
+    session_dbname = os.path.normpath(
+        config.registry.settings.get('db.sessions', 'sessions.db'))
     session_secret = os.environ.get('UNSAFE_SESSION_SECRET', 'secret')
     session_factory = MySessionFactory(
         database=session_dbname,

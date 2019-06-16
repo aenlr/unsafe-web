@@ -8,7 +8,7 @@ from pyramid.request import Request
 from pyramid.security import remember, forget
 from pyramid.view import view_config, forbidden_view_config
 
-from unsafe.embed import embeddable
+from .embed import embeddable
 from . import db
 
 
@@ -30,8 +30,8 @@ def _groupfinder(userid, request):
 def login_view(request: Request):
     """Login form.
 
-    After successful login redirects to the URL in the query or post parameter ``next``.
-    By default redirects to the index page.
+    After successful login redirects to the URL in the query or post
+    parameter ``next``. By default redirects to the index page.
     """
 
     def bind_set_csrf_token(value, max_age=None):
@@ -63,8 +63,8 @@ def login_view(request: Request):
 
         user = db.user.authenticate(request.db, username, password)
         if user:
-            # Important - at the very least generate a new session id at login/logout
-            # to prevent session fixation attacks.
+            # Important - at the very least generate a new session id at
+            # login/logout to prevent session fixation attacks.
             request.session.invalidate()
             request.user = user
             headers = remember(request, user.user_id)
@@ -95,7 +95,10 @@ def logout_view(request: Request):
 
 @forbidden_view_config(decorator=embeddable)
 def forbidden_view(request):
-    """Forbidden view. Redirects to login if the user is not already logged in, else returns HTTP 403."""
+    """Forbidden view.
+    Redirects to login if the user is not already logged in,
+    otherwise returns HTTP 403.
+    """
 
     if request.authenticated_userid:
         # User already logged in -> forbidden

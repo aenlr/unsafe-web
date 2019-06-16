@@ -79,18 +79,18 @@
           <td>{{ note.created_at }}</td>
           <td>
             <a class="button is-small"
-               href="{{ 'edit-note' | route_url(note=note.post_id) }}">
-                <span class="icon is-small">
-                  <i class="fas fa-edit"></i>
-                </span>
+               href="{{ 'note' | route_url(note=note.note_id) }}">
+              <span class="icon is-small">
+                <i class="fas fa-edit"></i>
+              </span>
             </a>
 
             <a class="button is-small is-danger"
                onclick="deleteNote(event)"
-               href="{{ 'note-action' | route_url(_query={'action': 'delete', 'id': note.post_id}) }}">
-                <span class=" icon is-small">
-                  <i class="fas fa-trash-alt"></i>
-                </span>
+               href="{{ 'note-action' | route_url(_query={'action': 'delete', 'id': note.note_id}) }}">
+              <span class=" icon is-small">
+                <i class="fas fa-trash-alt"></i>
+              </span>
             </a>
           </td>
         </tr>

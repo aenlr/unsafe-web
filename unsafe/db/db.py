@@ -9,16 +9,8 @@ __all__ = [
     'cursor',
     'fetchall',
     'fetchone',
-    'init',
     'runscripts',
 ]
-
-
-def init(db: Union[str, sqlite3.Connection]):
-    """Initialize database, creating tables and loading initial data."""
-    import unsafe
-    sql_path = os.path.join(unsafe.__path__[0], 'sql')
-    runscripts(db, 'db-create.sql', 'db-init.sql', script_path=sql_path)
 
 
 def runscripts(db: Union[str, sqlite3.Connection], *scripts, script_path=None):
@@ -29,13 +21,14 @@ def runscripts(db: Union[str, sqlite3.Connection], *scripts, script_path=None):
     :param scripts: list of script filenames
     :param script_path: path to prepend to script filenames
     """
+    logger = logging.getLogger(__name__)
     with cursor(db) as cur:
         for script in scripts:
             if script_path:
                 full_path = os.path.join(script_path, script)
             else:
                 full_path = script
-            logging.getLogger(__name__).info('Running database script: %s', full_path)
+            logger.info('Running database script: %s', full_path)
             with open(full_path, encoding='utf-8') as f:
                 sql = f.read()
                 cur.executescript(sql)
@@ -49,9 +42,9 @@ def connect(database: str, **kwargs):
 
 
 @contextmanager
-def cursor(db: Union[str, sqlite3.Connection], commit=None) -> Iterator[sqlite3.Cursor]:
-    """
-    Create a cursor and close it after use.
+def cursor(db: Union[str, sqlite3.Connection],
+           commit=None) -> Iterator[sqlite3.Cursor]:
+    """Create a cursor and close it after use.
 
     :param db: An existing connection or a database name
     :param commit: if True, commit transaction after successful execution
