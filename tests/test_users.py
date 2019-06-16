@@ -30,7 +30,6 @@ def test_create(conn):
     assert user.username == 'bob'
     assert user.password is not None
     assert user.password != 'secret'
-    assert user.admin is False
 
 
 def test_from_username(conn):
@@ -38,7 +37,6 @@ def test_from_username(conn):
     assert user.user_id
     assert user.username == 'joe'
     assert user.password.startswith('$2b$')
-    assert user.admin is False
 
 
 def test_from_id(conn):

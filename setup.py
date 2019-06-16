@@ -47,14 +47,18 @@ setup(name='unsafe',
           "Topic :: Internet :: WWW/HTTP",
           "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
       ],
+
       author='Anders Norlander',
       author_email='anob3it@users.noreply.github.com',
       url='https://github.com/anob3it/unsafe-web',
+
       keywords=['web', 'pyramid', 'xss', 'csrf', 'security'],
       license='MIT',
+
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
+
       install_requires=install_requires,
       extras_require={
           'dev': dev_extras,
@@ -64,6 +68,7 @@ setup(name='unsafe',
       },
       #setup_requires=['pytest-runner'],
       tests_require=tests_require,
+
       entry_points={
           'console_scripts': [
               'unsafe-initdb = unsafe.scripts.initdb:main',
