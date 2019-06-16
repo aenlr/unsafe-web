@@ -2,6 +2,7 @@ import hmac
 import uuid
 
 from pyramid.config import Configurator
+from pyramid.exceptions import BadCSRFToken
 from pyramid.httpexceptions import HTTPFound, HTTPForbidden
 from pyramid.request import Request
 from pyramid.security import remember, forget
@@ -57,16 +58,18 @@ def login_view(request: Request):
         password = request.POST.get('password', '')
         csrf_token = request.POST.get('csrf_token', '')
         expected_csrf_token = request.cookies.get('csrf_token', '')
-        if hmac.compare_digest(csrf_token, expected_csrf_token):
-            user = db.user.authenticate(request.db, username, password)
-            if user:
-                # Important - at the very least generate a new session id at login/logout
-                # to prevent session fixation attacks.
-                request.session.invalidate()
-                request.user = user
-                headers = remember(request, user.user_id)
-                request.add_response_callback(bind_set_csrf_token('', 0))
-                return HTTPFound(location=next_url, headers=headers)
+        if not hmac.compare_digest(csrf_token, expected_csrf_token):
+            raise BadCSRFToken()
+
+        user = db.user.authenticate(request.db, username, password)
+        if user:
+            # Important - at the very least generate a new session id at login/logout
+            # to prevent session fixation attacks.
+            request.session.invalidate()
+            request.user = user
+            headers = remember(request, user.user_id)
+            request.add_response_callback(bind_set_csrf_token('', 0))
+            return HTTPFound(location=next_url, headers=headers)
 
         failed = True
 
