@@ -38,7 +38,7 @@ run-prod:
 	$(VENV)/bin/unsafe production.ini
 
 clean:
-	rm -rf build .coverage dist .eggs .pytest_cache .ptype test*.db sessions.db *.log
+	rm -rf build .coverage dist .eggs .pytest_cache .pytype .mypy_cache test*.db sessions.db *.log
 	find . -name __pycache__ -delete
 
 reallyclean: clean db-clean
