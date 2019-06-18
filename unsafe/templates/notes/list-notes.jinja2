@@ -58,7 +58,8 @@
       <thead>
       <tr>
         <th style="width: 10%">#</th>
-        <th style="width: 60%">Innehåll</th>
+        <th style="width: 10%">Kategori</th>
+        <th style="width: 50%">Innehåll</th>
         <th style="width: 20%">Tidpunkt</th>
         <th style="width: 10%">
           <a class="button is-primary" href="{{ 'new-note' | route_url }}">
@@ -75,6 +76,7 @@
       {% for note in notes %}
         <tr>
           <td>{{ loop.index }}</td>
+          <td>{{ note.category }}</td>
           <td>{{ note.content | abbrev }}</td>
           <td>{{ note.created_at }}</td>
           <td>

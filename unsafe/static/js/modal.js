@@ -30,7 +30,7 @@ class Modal {
       title,
       message,
       buttons
-    }, { helpers: Modal.helpers });
+    }, {helpers: Modal.helpers});
 
     this.element.addEventListener('keydown', event => {
       if (event.code === 'Escape') {
@@ -140,27 +140,27 @@ class Modal {
     return this.on('_always', callback);
   }
 
-  static helpers = {
-    buttonClass() {
-      return this.class ? `button ${this.class}` : 'button';
-    }
-  };
-
-  static template = Handlebars.compile(`
-        <div class="modal-background"></div>
-          <div class="modal-card" role="dialog" aria-modal="true">
-            <header class="modal-card-head">
-              <p class="modal-card-title">{{title}}</p>
-              <button class="delete" aria-label="Stäng" data-role="cancel"></button>
-            </header>
-            <section class="modal-card-body">
-             <p>{{message}}</p>
-            </section>
-            <footer class="modal-card-foot">
-            {{#each buttons}}
-              <button class="{{buttonClass}}" data-role="{{this.role}}">{{this.title}}</button>
-            {{/each}}
-            </footer>
-          </div>`);
-
 }
+
+Modal.helpers = {
+  buttonClass() {
+    return this.class ? `button ${this.class}` : 'button';
+  }
+};
+
+Modal.template = Handlebars.compile(`
+  <div class="modal-background"></div>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <header class="modal-card-head">
+        <p class="modal-card-title">{{title}}</p>
+        <button class="delete" aria-label="Stäng" data-role="cancel"></button>
+      </header>
+      <section class="modal-card-body">
+       <p>{{message}}</p>
+      </section>
+      <footer class="modal-card-foot">
+      {{#each buttons}}
+        <button class="{{buttonClass}}" data-role="{{this.role}}">{{this.title}}</button>
+      {{/each}}
+      </footer>
+    </div>`);

@@ -23,12 +23,16 @@ VALUES ('admin',
        );
 
 
-INSERT INTO note (user_id, content, created_at, updated_at)
-SELECT user_id, 'Recept på semlor' || x'0a' || 'Du behöver följande:' || x'0a' || '- Vetemjöl', '2019-05-26 20:33:28', '2019-05-29 12:25:01'
+INSERT INTO note (user_id, category, content, created_at, updated_at)
+SELECT user_id, 'mat', 'Recept på semlor' || x'0a' || 'Du behöver följande:' || x'0a' || '- Vetemjöl', '2019-05-26 20:33:28', '2019-05-29 12:25:01'
 FROM user WHERE username = 'bosse';
 
-INSERT INTO note (user_id, content, created_at, updated_at)
-SELECT user_id, 'Som tam' || x'0a' || 'Papayasallad med Chili.' || x'0a' || 'Det är smaskens det.', '2019-04-26 18:15:17', '2019-04-26 18:15:17'
+INSERT INTO note (user_id, category, content, created_at, updated_at)
+SELECT user_id, 'mat', 'Som tam' || x'0a' || 'Papayasallad med Chili.' || x'0a' || 'Det är smaskens det.', '2019-04-26 18:15:17', '2019-04-26 18:15:17'
+FROM user WHERE username = 'bosse';
+
+INSERT INTO note (user_id, category, content)
+SELECT user_id, 'todo', 'Fixa grejer.'
 FROM user WHERE username = 'bosse';
 
 INSERT INTO note (user_id, content)

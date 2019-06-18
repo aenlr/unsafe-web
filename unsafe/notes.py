@@ -35,7 +35,8 @@ class NoteResource:
 
 @view_config(route_name='note-action',
              request_method=('GET', 'POST'),
-             request_param='action=delete')
+             request_param='action=delete',
+             renderer='json')
 def delete_note_action(request):
     """Unsafe delete of note.
 
@@ -47,7 +48,7 @@ def delete_note_action(request):
     """
 
     db.note.delete_note(request.db, request.params['id'])
-    return HTTPNoContent()
+    return {}
 
 
 @view_config(route_name='notes', permission='view',
@@ -56,10 +57,12 @@ def notes_listing(request):
     search = request.params.get('search', '')
     from_date = request.params.get('from', '')
     to_date = request.params.get('to', '')
+    category = request.params.get('category')
     notes = db.note.find_notes(request.db,
                                user_id=request.user.user_id,
                                from_date=from_date,
                                to_date=to_date,
+                               category=category,
                                search=search)
 
     return {
@@ -90,6 +93,7 @@ def save_note(context: NoteResource, request: Request):
 def create_note(request: Request):
     note = db.note.Note(None,
                         user_id=request.user.user_id,
+                        category=request.params.get('category', ''),
                         content=request.params.get('note', ''))
     if request.method == 'POST':
         _save_or_create_note(note, request)
