@@ -1,4 +1,187 @@
 {% extends "topics/base.jinja2" %}
+{%- set show_example = False -%}
 
 {% block topic %}
+
+  <h2>Översikt</h2>
+
+  <p>
+    Cookies/kakor är nyckel-värdepar som sätts av servern och skickas med av klienten i efterföljande
+    anrop till servern.
+  </p>
+
+  <p>Cookies kan även sättas av JavaScript.</p>
+
+  <h3>Snabbfakta</h3>
+  <p>
+    Använd <code>HttpOnly</code> och <code>Secure</code> för känsliga cookies, t.ex. sessionsid.
+  </p>
+  <p>
+    Använd <code>SameSite=Lax</code> om det förväntas gå att navigera från en annan webbplats med intakt cookie.
+  </p>
+  <p>
+    Använd <code>SameSite=Strict</code> för cookies som inte bör ses som pålitliga efter navigering från externa
+    webbplatser.
+  </p>
+
+  <h3>Exempel på utbyte av cookies</h3>
+  {% call sample('Request', 'ex-1') -%}
+POST /login HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+username=bosse&password=hemligt
+  {%- endcall %}
+
+  {% call sample('Svar - server sätter cookie', 'ex-1', class='http') -%}
+HTTP/1.1 200 OK
+Set-Cookie: JSESSIONID=0123456789abcdef; Path=/; HttpOnly; Secure; SameSite=Lax
+&hellip;
+  {%- endcall %}
+
+  {% call sample('Request med cookie', 'ex-2') -%}
+GET /mail HTTP/1.1
+Cookie: JSESSIONID=0123456789abcdef
+  {%- endcall %}
+  {% call sample('Svar - server använder cookie', 'ex-1', class='http') -%}
+HTTP/1.1 200 OK
+&hellip;
+  {%- endcall %}
+
+  <h2>Parametrar</h2>
+  <p>
+    En cookie kan ha ett antal parametrar som styr hur den kan användas och när den förmedlas
+    till servern.
+  </p>
+
+  <h3 id="httponly">HttpOnly</h3>
+  <p>En cookie som är <code>HttpOnly</code> kan inte läsas av JavaScript.</p>
+
+  <p>
+    Använd alltid <code>HttpOnly</code> för cookies som kan vara känsliga.
+    Om inte kan en angripare utnyttja <a href="{{ 'topic' | route_url(topic='xss') }}">XSS-brister</a>
+    för att t.ex. stjäla en session.
+  </p>
+
+  {% call sample('Cookie utan HttpOnly', 'httponly') -%}
+HTTP/1.1 200 OK
+Set-Cookie: JSESSIONID=0123456789abcdef; Path=/;
+Content-Type: text/html
+
+{{ '''<body>
+<!-- Kommer att visa JSESSIONID=0123456789abcde -->
+<script>alert(document.cookie)</script>
+</body>''' }}
+  {%- endcall %}
+
+  <p>
+    Tänk på att om ett illasinnat script får möjlighet att sätta en cookie innan servern har
+    satt cookien med HttpOnly så kan servern luras att använda en angripares cookie istället
+    för en cookie som utfärdats till användarens webbläsare på ordinarie sätt! Parametrar som HttpOnly
+    skickas aldrig till servern.
+  </p>
+
+  <h3 id="secure">Secure</h3>
+  <p>Cookien skickas aldrig över en osäker förbindelse - dvs. kräver <a href="{{ 'topic' | route_url(topic='https') }}">HTTPS</a>.</p>
+
+  <p>
+    Är <code>Secure</code> nödvändig för en cookie om man alltid omdirigerar användaren till HTTPS?
+  </p>
+  <p>
+    Svar: Ja, se följande exempel.
+  </p>
+
+  {% call sample('Request utan HTTPS', 'secure') -%}
+GET /service HTTP/1.1
+Host: example.com
+Cookie: JSESSIONID=0123456789abcdef
+  {%- endcall %}
+
+  {% call sample('Redirect till HTTPS', 'secure') -%}
+HTTP/1.1 302 Found
+Location: https://example.com/service
+  {%- endcall %}
+
+  <p>Vår känsliga cookie skickades över den osäkra förbindelsen innan omdirigering till HTTPS.</p>
+
+  <p>
+    Se även <a href="{{ 'topic' | route_url(topic='https', _anchor='hsts')}}">HSTS</a>
+  </p>
+
+  <h3 id="samesite">SameSite</h3>
+  <p>
+    <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03">Uppdatering till RFC6265</a>.
+  </p>
+
+  <p>
+    <code>SameSite</code> har funnits sedan 2016 och kan användas för att förhindra vissa former av
+    <a href="{{ 'topic' | route_url(topic='csrf') }}">Cross Site Request Forgery (CSRF)</a>.
+  </p>
+
+  <p>
+    Det är implementerat i de flesta moderna webbläsare, men äldre versioner (inlusive IE 11 på Windows 7)
+    saknar stöd.
+  </p>
+
+  <p>
+    Noterbart är att Java Servlets INTE har stöd för SameSite. Det kan hackas in via filter.
+  </p>
+
+  <p>
+    En cookie som är <code>SameSite=Strict</code> skickas aldrig i en cross-site request,
+    inte ens när användaren klickar på en vanlig länk i webbläsaren.
+  </p>
+
+  <p>
+    När SameSite är <code>Lax</code> skickas cookien bara med om requesten sker till följd av
+    en normal navigering: GET och webbläsarens URL förändras. Vanliga länkar med andra ord.
+
+    Lax förhindrar att cookien skickas när requests görs från andra origin för t.ex.
+  </p>
+
+  <table class="table is-hoverable">
+    <thead>
+      <tr>
+        <th>Cross-Site Request</th>
+        <th>Cookies med SameSite=Lax</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>{{ '<a href="...">' }}</code></td>
+        <td><span class="icon"><i class="fas fa-check"></i></span></td>
+      </tr>
+      <tr>
+        <td><code>{{ '<meta http-equiv="refresh" content="...">' }}</code></td>
+        <td><span class="icon"><i class="fas fa-check"></i></span></td>
+      </tr>
+      <tr>
+        <td><code>{{ 'HTTP/1.1 3xx, Location: ...' }}</code></td>
+        <td>
+          <span class="icon"><i class="fas fa-check"></i></span>
+          <small>Reservation för vissa iOS 12.x?</small>
+        </td>
+      </tr>
+      <tr>
+        <td><code>{{ '<form method="get" action="...">' }}</code></td>
+        <td><span class="icon"><i class="fas fa-check"></i></span></td>
+      </tr>
+      <tr>
+        <td><code>{{ '<form method="post" action="...">' }}</code></td>
+        <td><span class="icon"><i class="fas fa-times"></i></span></td>
+      </tr>
+      <tr>
+        <td><code>{{ '<iframe src="...">' }}</code></td>
+        <td><span class="icon"><i class="fas fa-times"></i></span></td>
+      </tr>
+      <tr>
+        <td><code>{{ 'XMLHttpRequest, fetch(...)' }}</code></td>
+        <td><span class="icon"><i class="fas fa-times"></i></span></td>
+      </tr>
+      <tr>
+        <td><code>{{ '<img src="...">' }}</code></td>
+        <td><span class="icon"><i class="fas fa-times"></i></span></td>
+      </tr>
+    </tbody>
+  </table>
+
 {% endblock topic %}

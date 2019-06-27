@@ -3,7 +3,7 @@
     ('index', 'Startsida'),
     ('notes', 'Anteckningar'),
     ('posts', 'Inlägg'),
-    ('topics', 'Sårbarheter'),
+    ('topics', 'Säkerhet'),
 ] -%}
 {% set active_page = active_page|default(request.matched_route.name) -%}
 
@@ -15,7 +15,8 @@
         <i class="fas fa-radiation-alt"></i>
       </a>
 
-      <a role="button" class="navbar-burger burger" aria-label="Meny" aria-expanded="false" data-target="navbar">
+      <a role="button" class="navbar-burger burger" data-target="navbar"
+         aria-label="Meny" aria-expanded="false">
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
@@ -38,9 +39,9 @@
         {% if request.user %}
           <div class="navbar-item has-dropdown is-hoverable">
             <a class="navbar-link" aria-label="Inloggad som {{ request.user.username }}">
-            <span class="icon is-large">
-              <i class="fas fa-user"></i>
-            </span>
+              <span class="icon is-large">
+                <i class="fas fa-user"></i>
+              </span>
             </a>
 
             <div class="navbar-dropdown is-right">

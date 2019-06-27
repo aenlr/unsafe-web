@@ -13,14 +13,18 @@
   font-size: 40px;
 }
 
-iframe {
-  width: 100%;
-  min-height: 500px;
-  border: 1px solid black;
-  overflow: hidden;
-  overflow-y: auto;
-}
-
 html.embedded .section {
   padding: 1rem;
+}
+
+.app-mr-1 {
+  margin-right: 1rem;
+}
+
+.app-mt-1 {
+  margin-top: 1rem;
+}
+
+.embedded {
+  font-size: 75%;
 }

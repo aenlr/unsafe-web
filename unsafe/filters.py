@@ -1,8 +1,15 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Union, Dict, Callable, Optional
 
 from dateutil.relativedelta import relativedelta
 from pyramid.config import Configurator
+
+
+def classes_filter(cls, *args, **kw):
+    classes = [name for name, value in cls.items() if value]
+    classes += args
+    classes += [name for name, value in kw.items() if value]
+    return ' '.join(classes)
 
 
 def abbrev_filter(value: str, maxlen=40):
@@ -37,14 +44,14 @@ def since_filter(value: Union[datetime, str],
         return ''
 
     if isinstance(value, str):
-        then = datetime.fromisoformat(value)
+        then = datetime.fromisoformat(value).replace(tzinfo=timezone.utc)
     else:
         then = value
 
     if now is None:
-        now = datetime.now()
+        now = datetime.now(tz=timezone.utc)
     elif isinstance(now, str):
-        now = datetime.fromisoformat(now)
+        now = datetime.fromisoformat(now).replace(tzinfo=timezone.utc)
 
     delta = relativedelta(now, then)
     if delta.years:
@@ -69,6 +76,7 @@ def since_filter(value: Union[datetime, str],
 def jinja2_filters() -> Dict[str, Callable]:
     import pyramid_jinja2.filters
     return dict(abbrev=abbrev_filter,
+                classes=classes_filter,
                 since=since_filter,
                 route_url=pyramid_jinja2.filters.route_url_filter,
                 static_url=pyramid_jinja2.filters.static_url_filter,

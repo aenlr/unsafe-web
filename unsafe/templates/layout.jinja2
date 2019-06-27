@@ -12,8 +12,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
   <link rel="stylesheet" href="{{ 'unsafe:static/css/unsafe.css' | static_url }}">
 
+  {% block stylesheets %}
+  {% endblock stylesheets %}
+
   <script defer src="{{ 'unsafe:static/js/unsafe.js' | static_url }}"></script>
   <script defer src="{{ 'unsafe:static/js/embedded.js' | static_url }}"></script>
+  {% block headscripts %}
+  {% endblock headscripts %}
+
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.1.2/handlebars.min.js"></script>
 </head>
 

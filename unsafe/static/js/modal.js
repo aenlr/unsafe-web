@@ -156,7 +156,7 @@ Modal.template = Handlebars.compile(`
         <button class="delete" aria-label="Stäng" data-role="cancel"></button>
       </header>
       <section class="modal-card-body">
-       <p>{{message}}</p>
+       {{message}}
       </section>
       <footer class="modal-card-foot">
       {{#each buttons}}

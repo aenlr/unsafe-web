@@ -14,7 +14,8 @@ from .app import RootContextFactory
 
 class PostsFactory(RootContextFactory):
     __acl__ = [
-        (Allow, Everyone, 'view')
+        (Allow, Everyone, 'view'),
+        (Allow, Authenticated, 'create')
     ]
 
     def __getitem__(self, post_id):
@@ -38,43 +39,42 @@ class PostResource:
         ]
 
 
-@view_config(route_name='posts', permission='view',
+@view_config(route_name='posts',
+             permission='view',
              renderer='posts/list-posts.jinja2')
 def posts_listing(request: Request):
     """Main posts listing"""
     user_id = request.params.get('user')
-    search = request.params.get('search', '')
-    from_date = request.params.get('from', '')
-    to_date = request.params.get('to', '')
-    posts = db.post.find_posts(request.db,
-                               user_id=user_id,
-                               from_date=from_date,
-                               to_date=to_date,
-                               search=search)
+    posts = db.post.find_posts(request.db, user_id=user_id)
 
     unique_userids: Set[int] = set()
-    for post in posts:
-        post.replies = db.post.find_posts(request.db, reply_to=post.post_id)
+
+    def load_replies(post):
+        post.replies = db.post.find_posts(request.db, reply_to=post.post_id, order='ASC')
         unique_userids.update(reply.user_id for reply in post.replies)
         unique_userids.add(post.user_id)
+        for reply in post.replies:
+            load_replies(reply)
+
+    for post in posts:
+        load_replies(post)
 
     users = {user_id: db.user.from_id(request.db, user_id)
              for user_id in unique_userids}
 
     return {
         'users': users,
-        'posts': posts,
-        'from': from_date,
-        'to': to_date,
-        'search': search
+        'posts': posts
     }
 
 
-@view_config(route_name='post', permission='like', renderer='json',
+@view_config(route_name='post',
+             permission='like',
              request_method='POST',
              header='Content-Type:application/json',
              accept='application/json',
-             # require_csrf=True
+             # require_csrf=True,
+             renderer='json',
              )
 def like_post_json(context: PostResource, request):
     """ JSON `like` action.
@@ -86,6 +86,9 @@ def like_post_json(context: PostResource, request):
       (only ``application/x-www-form-urlencoded``)
     - CORS/SOP prevent scripts on `external pages` from posting
       unless a CORS policy allows it.
+    - Requires a CSRF-token
+
+    In addition the user must have permission to perform the action.
 
     Abbreviations:
 
@@ -112,10 +115,11 @@ def like_post_json(context: PostResource, request):
     return post
 
 
-@view_config(route_name='post', permission='like',
+@view_config(route_name='post',
+             permission='like',
              request_param='action=like',
              request_method='POST',
-             header='Content-Type:application/x-www-form-urlencoded',
+             # header='Content-Type:application/x-www-form-urlencoded',
              # require_csrf=True
              )
 def like_post(context: PostResource, request):
@@ -133,10 +137,63 @@ def like_post(context: PostResource, request):
     return HTTPFound(request.current_request_url)
 
 
+@view_config(route_name='new-post',
+             permission='create',
+             renderer='posts/edit-post.jinja2',
+             # require_csrf=True
+             )
+def new_post(request: Request):
+    post = db.post.Post(None,
+                        user_id=request.user.user_id,
+                        content=request.params.get('post', ''))
+    if 'submit' in request.params: #request.method == 'POST':
+        post = _create_post(post, request)
+        return HTTPFound(location=request.route_url('posts', _anchor=f'post-{post.post_id}'))
+
+    return {
+        'title': 'Nytt inlägg',
+        'post': post
+    }
+
+@view_config(route_name='reply-post',
+             permission='reply',
+             renderer='posts/edit-post.jinja2',
+             # require_csrf=True
+             )
+def post_reply(context: PostResource, request: Request):
+    post = db.post.Post(None,
+                        user_id=request.user.user_id,
+                        content=request.params.get('post', ''),
+                        reply_to=context.post.post_id)
+    if 'submit' in request.params: #request.method == 'POST':
+        post = _create_post(post, request)
+        return HTTPFound(location=request.route_url('posts', _anchor=f'post-{post.post_id}'))
+
+    reply_to_user = db.user.from_id(request.db, context.post.user_id)
+
+    return {
+        'title': 'Svara på inlägg',
+        'post': post,
+        'reply_to': context.post,
+        'reply_to_user': reply_to_user
+    }
+
+
+def _create_post(post: db.post.Post, request: Request):
+    content: str = request.params['post']
+    post.content = content.replace('\r', '')
+    return db.post.save_post(request.db, post)
+
+
 def includeme(config):
     config.add_route('posts', '/posts', factory=PostsFactory)
+    config.add_route('new-post', '/posts/new')
     config.add_route('post',
                      pattern='/posts/{post}',
+                     traverse='/{post}',
+                     factory=PostsFactory)
+    config.add_route('reply-post',
+                     pattern='/posts/{post}/reply',
                      traverse='/{post}',
                      factory=PostsFactory)
     config.add_route('like-post',

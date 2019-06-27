@@ -1,17 +1,15 @@
 import os
 
-from bs4 import BeautifulSoup
-
 import pytest
 from pyramid import testing
 from pyramid.httpexceptions import HTTPFound
 from pyramid.response import Response
 from pyramid.testing import DummyRequest
 from webob.cookies import Cookie, Morsel
-from webtest import TestApp as App
+from webtest import TestApp as App, TestResponse
 
 import unsafe.app
-from unsafe.auth import login_view, logout_view
+from unsafe.auth import login_view
 from unsafe import db
 from unsafe.db import request_connection_factory
 
@@ -27,7 +25,7 @@ def setup_module():
     for fn in (DBNAME_APP, DBNAME_SESSIONS):
         try:
             os.remove(fn)
-        except FileNotFoundError: # pragma: no cover
+        except FileNotFoundError:  # pragma: no cover
             pass
 
     db.init(DBNAME_APP)
@@ -45,11 +43,8 @@ def app() -> App:
     return App(wsgi_app)
 
 
-def parse_html_response(response: Response):
-    return BeautifulSoup(response.unicode_body, "html.parser")
-
-
-def login(username, password, csrf_token='00112233445566778899aabbccddeeff', **kwargs):
+def login(username, password, csrf_token='00112233445566778899aabbccddeeff',
+          **kwargs):
     body = {
         'csrf_token': csrf_token,
         'submit': '',
@@ -100,7 +95,10 @@ def parse_response_cookies(request_or_response) -> Cookie:
 
 def get_response_cookie(request_or_response, cookie_name) -> Morsel:
     cookies = parse_response_cookies(request_or_response)
-    key = cookie_name if isinstance(cookie_name, bytes) else cookie_name.encode('ascii')
+    if isinstance(cookie_name, bytes):
+        key = cookie_name
+    else:
+        key = cookie_name.encode('ascii')
     return cookies[key]
 
 
@@ -145,15 +143,13 @@ def test_login_view_does_not_create_session():
 
 
 @pytest.mark.functional
-@pytest.mark.slow
 class TestLoginApp:
 
     def test_form(self, app):
-        response: Response = app.get('/login')
+        response: TestResponse = app.get('/login')
         assert response.status_code == 200
 
-        body = parse_html_response(response)
-        form = body.form
+        form = response.html.form
         assert form['autocomplete'] == 'on'
         assert form['method'] == 'post'
 
@@ -173,8 +169,9 @@ class TestLoginApp:
 
         assert form.find('button', attrs={'name': 'submit'}) is not None
 
+    @pytest.mark.slow
     def test_submit(self, app: App):
-        response: Response = app.get('https://test.com/login')
+        response: TestResponse = app.get('https://test.com/login')
         assert response.status_code == 200
         assert 'session' not in app.cookies
         assert 'csrf_token' in app.cookies

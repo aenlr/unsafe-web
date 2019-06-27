@@ -1,0 +1,82 @@
+{% extends "topics/base.jinja2" %}
+{%- set show_example = False -%}
+{% block topic %}
+
+  <h2>Översikt</h2>
+  <p>
+    En grundförutsättning för säker kommunikation på webben är att man använder HTTPS för att
+    upprätta en säker förbindelse.
+  </p>
+
+  <h3>Snabbfakta</h3>
+  <ul>
+    <li>Dirigera alltid till <a href="#https">HTTPS</a></li>
+    <li>Använd <a href="#hsts">HSTS</a> för att tvinga webbläsare att använda HTTPS</li>
+  </ul>
+
+  <h2 id="certificates">Certifikat</h2>
+  <p>
+    Att skaffa ett certifikat är numera enkelt med <a href="https://letsencrypt.org/">Let's Encrypt</a>.
+  </p>
+  <p>
+    Det är kostnadsfritt och allt man behöver göra är att kunna bevisa att man kontrollerar den domän
+    som man vill utfärda certifikatet för.
+  </p>
+
+  <p>
+    Kostnad är inte längre en anledning att inte använda HTTPS.
+  </p>
+
+  <p>
+    Det utfärdade certifikatet är giltigt i 90 dagar och kan förnyas automatiskt <a href="https://certbot.eff.org/">certbot</a>.
+  </p>
+
+  <h2 id="https">Omdirigering till HTTPS</h2>
+  <p>
+    Dirigera alltid till HTTPS om en request tas emot över en osäker förbindelse.
+  </p>
+
+  <h2 id="hsts">HSTS - HTTP Strict Transport Security</h2>
+  <p>
+    Med HSTS kan servrar instruera klienter att ansluta via HTTPS även för <code>http://</code> URL:er.
+    Klienter ska inte heller kunna bortse från ogiltiga certifikat.
+  </p>
+
+  <p>
+    Det fungerar genom att servern svarar med headern <code>Strict-Transport-Security</code>
+    när en request görs över HTTPS. Headern skickas inte och ignoreras om kommunikationen inte sker över HTTPS.
+  </p>
+
+  <p>
+    OBS: Om den första requesten till en domän görs utan HTTPS kommer HSTS inte vara aktivt förrän
+    efter omdirigering till HTTPS.
+  </p>
+
+  <p>
+    En domän kan förregistreras för HSTS via <a href="https://hstspreload.org/">HSTS Preloading</a>
+    som tillhandahålls av Google för Chrome. Firefox, Safari, Opera och Edge använder samma källa.
+    Med preloading kan man undvika att en första request sker utan HTTPS.
+  </p>
+
+  <h3>Exempel</h3>
+  {% call sample('Request utan HTTPS', 'hsts') -%}
+GET /service HTTP/1.1
+Host: example.com
+  {%- endcall %}
+
+  {% call sample('Redirect till HTTPS', 'hsts') -%}
+HTTP/1.1 302 Found
+Location: https://example.com/service
+  {%- endcall %}
+
+  {% call sample('Följ redirect till HTTPS', 'hsts') -%}
+GET /service HTTP/1.1
+Host: example.com
+  {%- endcall %}
+
+  {% call sample('Svar som aktiverar HSTS', 'hsts') -%}
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+  {%- endcall %}
+
+{% endblock %}

@@ -23,10 +23,10 @@
               <br>
               {{ post.content | safe }}
               <br>
-              <small>
+              <small class="is-unselectable">
                 <span class="tag is-rounded {{ '' if post.likes else 'is-hidden' }}" id="likes-{{ post.post_id }}">{{ post.likes }}</span>
                 {% if request.user %}
-                <a onclick="Posts.like({{ post.post_id }})">Gilla</a> · <a>Svara</a> · {{ post.created_at | since }}
+                <a onclick="Posts.like({{ post.post_id }})">Gilla</a> · <a href="{{ 'reply-post' | route_url(post=post.post_id) }}">Svara</a> · {{ post.created_at | since }}
                 {% endif %}
               </small>
             </p>

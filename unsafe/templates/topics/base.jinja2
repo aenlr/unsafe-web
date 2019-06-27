@@ -1,50 +1,78 @@
 {% extends "layout.jinja2" %}
+
+{% set show_example = show_example|default(active_topic) -%}
+
+{% block stylesheets %}
+  <link rel="stylesheet" href="{{ 'unsafe:static/css/topics.css' | static_url }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/styles/default.min.css">
+{% endblock stylesheets %}
+
+{% block headscripts %}
+  <script defer src="{{ 'unsafe:static/js/topics.js' | static_url }}"></script>
+{% endblock headscripts %}
+
 {% block heading %}
 {% endblock %}
+
 {% block content %}
-  <div class="container">
-    <div class="tile is-ancestor">
-      <div class="tile is-2">
+  <main class="container">
+    <div class="columns">
+
+      <div class="column is-one-fifth">
         {% include "topics/menu.jinja2" %}
       </div>
 
-      <div class="tile is-vertical is-parent">
-        {#
-        <div class="tile-is-child">
-          <section class="hero is-primary">
-            <div class="hero-body">
-              <div class="container">
-                <h1 class="title">
-                  {{ title }}
-                </h1>
-                <h2 class="subtitle">
-                  Osäker webb
-                </h2>
+      <div class="column topic-container">
+        <div class="columns" style="align-items: stretch">
+          <div class="column topic-content">
+            <h1 class="title">{{ title }}</h1>
+            <div class="content is-relative" style="overflow-y: scroll">
+              {% block topic %}
+                <p>
+                  Använd menyn till vänster för att välja ett ämne.
+                </p>
+              {% endblock topic %}
+            </div>
+          </div>
+
+          {% if show_example %}
+            <div class="column topic-example">
+              <h1 class="title">
+                Exempel
+              </h1>
+              <div class="content is-relative">
+                <div style="position: absolute; top: 3px; right: 6px">
+                  <a target="_blank"
+                     id="open-example-external-window"
+                     aria-label="Öppna i separat fönster">
+                      <span class="icon is-small">
+                        <i class="fas fa-external-link-alt"></i>
+                      </span>
+                  </a>
+                </div>
+                <iframe></iframe>
               </div>
             </div>
-          </section>
-        </div>
-        #}
-
-        <div class="tile is-child">
-          <h1 class="title">{{ title }}</h1>
-          {% block topic %}
-            <div class="content">
-              <p>
-                Använd menyn till vänster för att välja ett ämne.
-              </p>
-            </div>
-          {% endblock topic %}
-        </div>
-
-        <div class="tile is-child">
-          <div style="width: 100%">
-            <iframe></iframe>
-          </div>
+          {% endif %}
         </div>
       </div>
-
     </div>
-  </div>
+  </main>
+
 
 {% endblock content %}
+
+{% block scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+{% endblock scripts %}
+
+{%- macro sample(label='', prefix='', class='') -%}
+  {% if label -%}
+    {%- set id = (prefix + '-' if prefix else '') + label.lower().replace(' ', '_') -%}
+    <label for="{{ id }}">{{ label }}</label>
+  {%- endif %}
+  <pre
+    {%- if id %} id="{{ id }}" {% endif -%}><code
+    {%- if class %} class="{{ class }}"{% endif -%}>{{ caller() }}</code></pre>
+{%- endmacro -%}

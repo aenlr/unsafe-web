@@ -106,6 +106,7 @@ def create_note(request: Request):
 def _save_or_create_note(note: db.note.Note, request: Request):
     content: str = request.params['note']
     note.content = content.replace('\r', '')
+    note.category = request.params.get('category', '')
     return db.note.save_note(request.db, note)
 
 

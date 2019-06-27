@@ -1,6 +1,35 @@
 {% extends "layout.jinja2" %}
 {% set title = 'Anteckningar' -%}
 
+{% block stylesheets %}
+  <style>
+    .level-item {
+      justify-content: flex-start;
+    }
+
+    input.is-date {
+      max-width: 9rem;
+    }
+
+    @media screen and (max-width: 768px) {
+      .control .button.is-static {
+        width: 8rem;
+      }
+
+      input[type=search] {
+        width: 17rem;
+      }
+    }
+
+    @media screen and (min-width: 769px) {
+      input[type=search] {
+        max-width: 15rem;
+      }
+    }
+
+  </style>
+{% endblock stylesheets %}
+
 {% block content %}
   <main class="container">
     <form method="get" action="{{ request.current_route_url() }}">
@@ -8,51 +37,76 @@
       <input name="embedded" type="hidden" value="{{ request.embedded }}">
 
       <nav class="level">
-        <!-- Left side -->
         <div class="level-left">
           <div class="level-item">
             <div class="field has-addons">
-              <p class="control">
+              <p class="control" aria-hidden="true">
                 <a class="button is-static">
-                  Från datum:
+                  <span class="is-hidden-tablet">
+                    Från:
+                  </span>
+                  <span class="is-hidden-mobile">
+                    Från datum:
+                  </span>
                 </a>
               </p>
               <p class="control">
-                <input class="input" name="from" type="date" value="{{ from }}">
+                <input class="input is-date"
+                       name="from"
+                       id="from"
+                       no-pattern="\d{4}-\d{2}-\d{2}"
+                       placeholder="åååå-mm-dd"
+                       aria-label="Sök anteckningar från och med datum"
+                       type="text"
+                       value="{{ from }}">
               </p>
             </div>
           </div>
           <div class="level-item">
             <div class="field has-addons">
-              <p class="control">
+              <p class="control" aria-hidden="true">
                 <a class="button is-static">
                   Till:
                 </a>
               </p>
               <p class="control">
-                <input class="input" name="to" type="date" value="{{ to }}">
+                <input class="input is-date"
+                       name="to"
+                       id="to"
+                       no-pattern="\d{4}-\d{2}-\d{2}"
+                       placeholder="åååå-mm-dd"
+                       aria-label="Sök anteckningar till och med datum"
+                       type="text"
+                       value="{{ to }}">
               </p>
             </div>
           </div>
 
           <div class="level-item">
             <div class="field">
-              <p class="control">
-                <input class="input" name="search" type="text" placeholder="Sök anteckning" value="{{ search }}"
+              <p class="control has-icons-right">
+                <input class="input"
+                       name="search"
+                       type="search"
+                       placeholder="Sök anteckning"
+                       aria-label="Sök anteckningar"
+                       value="{{ search }}"
                        autofocus onfocus="this.select()">
+                <span class="icon is-small is-right">
+                  <i class="fas fa-search"></i>
+                </span>
               </p>
             </div>
           </div>
 
-          <div class="level-item">
-            <p class="control">
-              <button class="button" type="submit">
-                Sök
-              </button>
-            </p>
-          </div>
+        </div>
+
+        <div class="level-right">
         </div>
       </nav>
+
+      <button type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;" tabindex="-1">Sök
+      </button>
     </form>
     <table class="table is-fullwidth is-hoverable">
       <thead>
@@ -140,8 +194,8 @@
         title: 'Bekräfta',
         message: 'Vill du ta bort anteckningen?',
         buttons: [
-          { role: 'delete', title: 'Ja, ta bort den', class: 'is-danger' },
-          { role: 'cancel', title: 'Nej, behåll den' }
+          {role: 'delete', title: 'Ja, ta bort den', class: 'is-danger'},
+          {role: 'cancel', title: 'Nej, behåll den'}
         ]
       });
 

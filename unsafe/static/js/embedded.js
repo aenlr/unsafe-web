@@ -1,4 +1,24 @@
 const Embedded = {
+
+  embeddedUrl(url) {
+    if (url.indexOf('embedded') < 0) {
+      return url + (url.indexOf('?') < 0 ? '?embedded' : '&embedded');
+    } else {
+      return url;
+    }
+  },
+
+  unembeddedUrl(url) {
+      let unembedUrl = url
+        .replace(/\?embedded(=[^&])?/, '?')
+        .replace(/&embedded(=[^&])?/, '');
+      if (unembedUrl.endsWith('?')) {
+        return unembedUrl.substr(0, unembedUrl.length - 1);
+      } else {
+        return unembedUrl;
+      }
+  },
+
   /**
    * @param {MouseEvent} event
    */
@@ -8,13 +28,17 @@ const Embedded = {
       return;
     }
 
-    let url = target.dataset.url || target.href;
-    if (url.indexOf('embedded') < 0) {
-      url = url + (url.indexOf('?') < 0 ? '?embedded' : '&embedded');
-    }
+    const url = target.dataset.url || target.href;
+    const iframeSelector = target.dataset.target || 'iframe';
+    const iframe = document.querySelector(iframeSelector);
+    const linkSelector = target.dataset.linkTarget || '.topic-example a';
+    const link = document.querySelector(linkSelector);
 
-    const selector = target.dataset.target || 'iframe';
-    document.querySelector(selector).src = url;
+    iframe.onload = function() {
+      link.href = Embedded.unembeddedUrl(this.contentWindow.location.href);
+    };
+
+    iframe.src = Embedded.embeddedUrl(url);
     event.preventDefault();
   },
 
@@ -24,7 +48,7 @@ const Embedded = {
       const elements = document.querySelectorAll(selector);
       for (let e of elements) {
         const url = e.getAttribute(attr);
-        if (url) {
+        if (url && !url.startsWith('#')) {
           let hashpos = url.indexOf('#');
           if (hashpos < 0) {
             hashpos = url.length;
@@ -47,6 +71,7 @@ const Embedded = {
 
     Array.from(document.querySelectorAll('a.embed'))
       .forEach(a => a.addEventListener('click', this.onClick));
+
   }
 
 };

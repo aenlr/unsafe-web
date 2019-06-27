@@ -1,5 +1,5 @@
 import hmac
-import uuid
+import os
 
 from pyramid.config import Configurator
 from pyramid.exceptions import BadCSRFToken
@@ -34,7 +34,7 @@ def login_view(request: Request):
     parameter ``next``. By default redirects to the index page.
     """
 
-    def bind_set_csrf_token(value, max_age=None):
+    def set_csrf_token(value, max_age=None):
         def set_cookie(request, response):
             response.set_cookie(
                 'csrf_token',
@@ -68,14 +68,14 @@ def login_view(request: Request):
             request.session.invalidate()
             request.user = user
             headers = remember(request, user.user_id)
-            request.add_response_callback(bind_set_csrf_token('', 0))
+            request.add_response_callback(set_csrf_token('', 0))
             return HTTPFound(location=next_url, headers=headers)
 
         failed = True
 
-    csrf_token = uuid.uuid4().hex
+    csrf_token = os.urandom(16).hex()
     url = request.route_url('login')
-    request.add_response_callback(bind_set_csrf_token(csrf_token))
+    request.add_response_callback(set_csrf_token(csrf_token))
     return dict(username=username,
                 next=next_url,
                 failed=failed,
@@ -85,17 +85,23 @@ def login_view(request: Request):
 
 @view_config(route_name='logout', renderer='logout.jinja2')
 def logout_view(request: Request):
-    """Logout view. Redirects to the login page."""
+    """
+    Logout view.
+
+    Invalidates the session and session cookies.
+    """
     headers = forget(request)
     request.session.invalidate()
     request.response.headers.extend(headers)
     login_url = request.route_url('login')
-    return dict(login_url=login_url)
+    return {'login_url': login_url}
 
 
 @forbidden_view_config(decorator=embeddable)
 def forbidden_view(request):
-    """Forbidden view.
+    """
+    Forbidden view.
+
     Redirects to login if the user is not already logged in,
     otherwise returns HTTP 403.
     """

@@ -22,9 +22,7 @@ def find_posts(conn,
                *,
                user_id: Optional[int] = None,
                reply_to: Optional[Union[int, bool]] = None,
-               from_date: Optional[str] = None,
-               to_date: Optional[str] = None,
-               search: Optional[str] = None) -> List[Post]:
+               order = 'DESC') -> List[Post]:
     conditions = []
     params: Union[tuple,Tuple[Any]] = ()
 
@@ -38,23 +36,10 @@ def find_posts(conn,
         conditions.append(f'user_id = ?')
         params += (user_id,)
 
-    if from_date:
-        conditions.append('updated_at >= ?')
-        params += (from_date,)
-
-    if to_date:
-        conditions.append(f"updated_at <= ?")
-        params += (to_date,)
-
-    # SQL-injection safe - but does not handle percent in search string
-    if search:
-        conditions.append(f"LOWER(content) LIKE ?")
-        params += (f'%{search.lower()}%',)
-
     sql = ('SELECT post_id, user_id, reply_to, content, likes,'
            ' created_at, updated_at'
            ' FROM post' +  # noqa
-           ' WHERE ' + ' AND '.join(conditions) + ' ORDER BY updated_at DESC')
+           ' WHERE ' + ' AND '.join(conditions) + f' ORDER BY updated_at {order}')
 
     with db.cursor(conn) as cur:
         return db.fetchall(cur, Post, sql, params)
