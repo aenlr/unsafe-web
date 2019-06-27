@@ -41,7 +41,7 @@ FROM user WHERE username = 'jane';
 
 
 INSERT INTO post (user_id, likes, content)
-SELECT user_id, 99, 'Trump på krigsstigen igen. Very stable genius bping, bping, bping, bpong'
+SELECT user_id, 99, 'Trump på krigsstigen igen. Very stable genius bping, bping, bpong, bping!'
 FROM user WHERE username = 'bosse';
 
 INSERT INTO post (user_id, reply_to, content)

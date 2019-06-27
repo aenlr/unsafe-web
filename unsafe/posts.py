@@ -8,6 +8,7 @@ from pyramid.request import Request
 from pyramid.security import Allow, Everyone, Authenticated
 from pyramid.view import view_config
 
+from embed import embeddable
 from . import db
 from .app import RootContextFactory
 
@@ -50,7 +51,8 @@ def posts_listing(request: Request):
     unique_userids: Set[int] = set()
 
     def load_replies(post):
-        post.replies = db.post.find_posts(request.db, reply_to=post.post_id, order='ASC')
+        post.replies = db.post.find_posts(request.db, reply_to=post.post_id,
+                                          order='ASC')
         unique_userids.update(reply.user_id for reply in post.replies)
         unique_userids.add(post.user_id)
         for reply in post.replies:
@@ -140,34 +142,37 @@ def like_post(context: PostResource, request):
 @view_config(route_name='new-post',
              permission='create',
              renderer='posts/edit-post.jinja2',
-             # require_csrf=True
-             )
+             # require_csrf=True,
+             decorator=embeddable)
 def new_post(request: Request):
     post = db.post.Post(None,
                         user_id=request.user.user_id,
                         content=request.params.get('post', ''))
-    if 'submit' in request.params: #request.method == 'POST':
+    if 'submit' in request.params:  # request.method == 'POST':
         post = _create_post(post, request)
-        return HTTPFound(location=request.route_url('posts', _anchor=f'post-{post.post_id}'))
+        return HTTPFound(location=request.route_url('posts',
+                                                    _anchor=f'post-{post.post_id}'))
 
     return {
         'title': 'Nytt inlägg',
         'post': post
     }
 
+
 @view_config(route_name='reply-post',
              permission='reply',
              renderer='posts/edit-post.jinja2',
-             # require_csrf=True
-             )
+             # require_csrf=True,
+             decorator=embeddable)
 def post_reply(context: PostResource, request: Request):
     post = db.post.Post(None,
                         user_id=request.user.user_id,
                         content=request.params.get('post', ''),
                         reply_to=context.post.post_id)
-    if 'submit' in request.params: #request.method == 'POST':
+    if 'submit' in request.params:  # request.method == 'POST':
         post = _create_post(post, request)
-        return HTTPFound(location=request.route_url('posts', _anchor=f'post-{post.post_id}'))
+        return HTTPFound(location=request.route_url('posts',
+                                                    _anchor=f'post-{post.post_id}'))
 
     reply_to_user = db.user.from_id(request.db, context.post.user_id)
 

@@ -26,13 +26,20 @@ def embedded_route_url(request: Request, route_name, *elements, **kw):
 def embeddable(view_callable):
     def inner(context, request):
         response: Response = view_callable(context, request)
-        location = response.location
+        location: str = response.location
         if location and request.embedded:
-            if '?' in location:
-                location += '&embedded'
+            if '#' in location:
+                prefix, hash = location.split('#', 1)
+                hash = '#' + hash
             else:
-                location += '?embedded'
-            response.location = location
+                prefix = location
+                hash = ''
+
+            if '?' in prefix:
+                prefix += '&embedded'
+            else:
+                prefix += '?embedded'
+                response.location = prefix + hash
         return response
 
     return inner
