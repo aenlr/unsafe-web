@@ -7,7 +7,7 @@ from pyramid.security import (
 )
 from pyramid.view import view_config, notfound_view_config
 
-from embed import embeddable
+from .embed import embeddable
 
 __all__ = ['main']
 

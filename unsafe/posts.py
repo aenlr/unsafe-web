@@ -8,9 +8,9 @@ from pyramid.request import Request
 from pyramid.security import Allow, Everyone, Authenticated
 from pyramid.view import view_config
 
-from embed import embeddable
 from . import db
 from .app import RootContextFactory
+from .embed import embeddable
 
 
 class PostsFactory(RootContextFactory):

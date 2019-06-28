@@ -72,6 +72,7 @@ setup(name='unsafe',
       entry_points={
           'console_scripts': [
               'unsafe-initdb = unsafe.scripts.initdb:main',
+              'unsafe-evilsite= unsafe.scripts.evilsite:main',
               'unsafe-sessions = unsafe.scripts.sessions:main',
               'unsafe = unsafe.scripts.runner:main'
           ],
