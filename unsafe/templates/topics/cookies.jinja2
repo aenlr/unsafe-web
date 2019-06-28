@@ -26,6 +26,10 @@
   <p>
     Signera känsliga serverutfärdade cookies så att en angripare inte kan konstruera cookies.
   </p>
+  <p>
+    Cookies är oberoende av portnummer. En cookie som utfärdats av example.com:8080 hanteras likadant
+    som en cookie från example.com:80 och example.com:443.
+  </p>
 
   <h3>Exempel på utbyte av cookies</h3>
   {% call sample('Request', 'ex-1') -%}
@@ -78,7 +82,7 @@ Content-Type: text/html
 
   <p>
     Tänk på att om ett illasinnat script får möjlighet att sätta en cookie innan servern har
-    satt cookien med HttpOnly så kan servern luras att använda en angripares cookie istället
+    satt cookien med <code>HttpOnly</code> så kan servern luras att använda en angripares cookie istället
     för en cookie som utfärdats till användarens webbläsare på ordinarie sätt! Parametrar som HttpOnly
     skickas aldrig till servern.
   </p>
