@@ -1,4 +1,5 @@
 """
+Serve the evil site.
 """
 import argparse
 import http.server
