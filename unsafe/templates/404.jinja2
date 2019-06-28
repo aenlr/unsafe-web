@@ -1,0 +1,11 @@
+{% extends "layout.jinja2" %}
+{% set title = 'Sidan finns inte' -%}
+
+{% block content %}
+  <main class="container">
+    <div class="content">
+      <p>Vi kunde inte hitta {{ path | safe }}</p>
+      <p>Fullständig url: {{ request.url }}</p>
+    </div>
+  </main>
+{% endblock %}

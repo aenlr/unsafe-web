@@ -47,3 +47,7 @@ FROM user WHERE username = 'bosse';
 INSERT INTO post (user_id, reply_to, content)
 SELECT user_id, 1, 'Good genes!'
 FROM user WHERE username = 'joe';
+
+INSERT INTO post (user_id, reply_to, content)
+SELECT user_id, 1, 'Hallå, en sida med <script>document.write("<a onclick=''alert(\"XSS\")''>Gratis viagra</a>")</script>!'
+FROM user WHERE username = 'jane';

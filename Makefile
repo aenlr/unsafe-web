@@ -37,6 +37,9 @@ run run-dev:
 run-prod:
 	$(VENV)/bin/unsafe production.ini
 
+evil:
+	$(VENV)/bin/python -m http.server --bind 127.0.0.1 --directory evil-site
+
 clean:
 	rm -rf build .coverage dist .eggs .pytest_cache .pytype .mypy_cache test*.db sessions.db *.log
 	find . -name __pycache__ -delete

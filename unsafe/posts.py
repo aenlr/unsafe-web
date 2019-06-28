@@ -15,8 +15,8 @@ from .app import RootContextFactory
 
 class PostsFactory(RootContextFactory):
     __acl__ = [
+        (Allow, Authenticated, 'create'),
         (Allow, Everyone, 'view'),
-        (Allow, Authenticated, 'create')
     ]
 
     def __getitem__(self, post_id):
@@ -148,7 +148,7 @@ def new_post(request: Request):
     post = db.post.Post(None,
                         user_id=request.user.user_id,
                         content=request.params.get('post', ''))
-    if 'submit' in request.params:  # request.method == 'POST':
+    if 'submitted' in request.params:  # request.method == 'POST':
         post = _create_post(post, request)
         return HTTPFound(location=request.route_url('posts',
                                                     _anchor=f'post-{post.post_id}'))
@@ -169,7 +169,7 @@ def post_reply(context: PostResource, request: Request):
                         user_id=request.user.user_id,
                         content=request.params.get('post', ''),
                         reply_to=context.post.post_id)
-    if 'submit' in request.params:  # request.method == 'POST':
+    if 'submitted' in request.params:  # request.method == 'POST':
         post = _create_post(post, request)
         return HTTPFound(location=request.route_url('posts',
                                                     _anchor=f'post-{post.post_id}'))
@@ -192,7 +192,7 @@ def _create_post(post: db.post.Post, request: Request):
 
 def includeme(config):
     config.add_route('posts', '/posts', factory=PostsFactory)
-    config.add_route('new-post', '/posts/new')
+    config.add_route('new-post', '/posts/new', factory=PostsFactory)
     config.add_route('post',
                      pattern='/posts/{post}',
                      traverse='/{post}',

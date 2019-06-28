@@ -2,7 +2,94 @@
 
 {% block topic %}
   <h2>Översikt</h2>
+  <p>
+    Cross Site Request Forgery utnyttjar det faktum att en webbläsare skickar cookies
+    för en server även om requesten i sig kommer från en webbplats på en annan server.
+  </p>
 
+  <p>
+    Det finns en uppsjö av sätt att skapa cross-site requests.
+  </p>
+  <ul>
+    <li><code>{{ '<img src="...">' }}</code></li>
+    <li><code>{{ '<iframe src="...">' }}</code></li>
+    <li><code>{{ '<body onload="document.forms[0].submit()"> ... <form action="...">' }}</code></li>
+  </ul>
 
+  <h2>Exempel</h2>
+
+  <p>
+    Tar bort alla anteckningar - fungerar inte om <code>SameSite=Strict</code>.
+  </p>
+  <a class="embed" href="http://127.0.0.1:8000/delete-notes.html">
+  {% call sample() -%}
+GET {{ request.route_path('note-action', _query={'action': 'delete', 'id': '0 or 1=1'}) }}
+Host: {{ request.host }}
+Cookie: session=0123456789abcdef
+&hellip;
+  {%- endcall %}
+  </a>
+  <br>
+
+  <p>
+    Tar bort alla anteckningar - fungerar inte med <code>SameSite=Strict</code> eller <code>SameSite=Lax</code>.
+    Om <code>SameSite</code> är odefinierad skickas sessions-kakan i requesten.
+  </p>
+  <a class="embed" href="http://127.0.0.1:8000/create-post.html">
+  {% call sample() -%}
+{{ '<body onload="document.forms[0].submit()">' }}
+{{ '<form action="http://localhost:6543/posts/new" method="post">' }}
+{{ '  <input type=hidden name=submitted value="">' }}
+{{ '  <input type=hidden name=post value="&lt;a onclick=\'javascript:alert(&quot;xss&quot;)\'&gt;Click me&lt;/a&gt;">' }}
+{{ '</form>'  }}
+{{ '</body>' }}
+    {%- endcall %}
+  </a>
+  <br>
+
+  {% call sample() -%}
+POST {{ request.route_path('new-post') }} HTTP/1.1
+Host: {{ request.host }}
+Cookie: session=0123456789abcdef
+
+post={{ '<a+onclick="javascript:alert(\'xss\')">Click+me</a>' }}&submitted=
+  {%- endcall %}
+  <br>
+
+  <h2>CSRF-token</h2>
+  <p>
+    Ett sätt att undvika CSRF-attacker är att varje request innehåller
+    en särskild token som måste angriparen inte kan gissa.
+  </p>
+
+  <p>
+    Denna token ska genereras av kryptografiskt säker slumgenerator
+    och förmedlas till sidor i t.ex. ett dolt fält.
+    Dessutom ska denna token sparas i antingen en session eller en separat
+    cookie.
+  </p>
+
+  <p>
+    Formulär-postningar och AJAX-anrop ska inkludera token från sidan i request body
+    eller en HTTP header.
+  </p>
+
+  <p>
+    När en request når servern kontrolleras att förväntad CSRF-token (från session
+    eller cookie) matchar CSRF-token från request body.
+  </p>
+
+  <p>
+    Jämförelse av CSRF-token ska göras med en säker jämförelsefunktion som inte
+    röjer information om implementationen, t.ex. ska den ta konstant tid och inte
+    variera beroende på innehållet i token.
+  </p>
+
+  <h2>Slutsatser</h2>
+  <ul>
+    <li><code>GET</code>, <code>HEAD</code>, <code>OPTIONS</code> ska <em>aldrig</em> ha destruktiva sidoeffekter</li>
+    <li>Använd en CSRF-token för att förhindra cross-site <code>POST</code>, <code>PUT</code> eller <code>DELETE</code></li>
+    <li>AJAX bör ha CORS-policy som inte tillåter cross-site requests och/eller kräva en CSRF-token</li>
+  </ul>
 
 {% endblock topic %}

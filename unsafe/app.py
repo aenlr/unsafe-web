@@ -1,10 +1,13 @@
+import urllib.parse
+
 from pyramid.config import Configurator
 from pyramid.security import (
     Allow,
     Authenticated,
 )
-from pyramid.view import view_config
+from pyramid.view import view_config, notfound_view_config
 
+from embed import embeddable
 
 __all__ = ['main']
 
@@ -29,6 +32,13 @@ class RootContextFactory:
 @view_config(route_name='index', renderer='templates/index.jinja2')
 def index(request):
     return {}
+
+
+@notfound_view_config(decorator=embeddable, renderer='templates/404.jinja2')
+def not_found_view(request):
+    return {
+        'path': urllib.parse.unquote(request.path)
+    }
 
 
 def main(global_config, **settings):

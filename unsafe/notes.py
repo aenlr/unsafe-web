@@ -34,6 +34,7 @@ class NoteResource:
 ###############################################################################
 
 @view_config(route_name='note-action',
+             permission='edit',
              request_method=('GET', 'POST'),
              request_param='action=delete',
              renderer='json')

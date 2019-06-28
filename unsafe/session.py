@@ -426,6 +426,7 @@ def includeme(config: Configurator):
         # secret=None, # No cookie signing!
         httponly=True,
         # samesite='Strict',
+        samesite=None,
         # secure=True,
         # query_param='session',
         accept_client_session_id=False)

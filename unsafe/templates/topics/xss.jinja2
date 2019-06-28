@@ -3,6 +3,70 @@
 {% block topic %}
   <h2>Översikt</h2>
 
+  <p>
+    Cross Site Scripting (XSS) utnyttjar brister i en applikation som
+    genererar HTML med indata från en angripare utan att oskadliggöra
+    innehåll som kan köra kod på den genererade sidan.
+  </p>
 
+  <h2>Reflected XSS</h2>
+  <p>
+    En Reflected XSS-attack utnyttjar att en server direkt svarar med innehållet
+    från en angripare när en sida.
+  </p>
+  <p>
+    Om det gäller t.ex. en form submit med POST är det inte särskilt allvarligt eftersom
+    angriparen mest kan ge sig på sig själv.
+  </p>
+  <p>
+    Om det däremot går att konstruera en URL och lura ett offer att öppna den så
+    är det allvarligt.
+  </p>
+  <p>
+    Några exempel är söksidor som ekar tillbaka sökparametrarna direkt eller felsidor
+    av olika slag t.ex.
+    <a class="embed" href="{{ "/does/not/exist/%3Cscript%3Ealert('Pwned')%3C/script%3E" }}">404 Not Found</a>
+  </p>
+
+  <p>
+    Chrome, Internet Explorer och Safari har en <em>XSS Auditor</em>
+    som är en funktion som försöker skydda mot denna typ av attacker.
+  </p>
+  <p>
+    Webbläsaren försöker upptäcka om data med misstänkt innehåll som skickats till en
+    server ekas tillbaka omodifierad. Om t.ex. ett fält innehåller
+    <code>{{ '<script>alert("xss")</script>' }}</code>
+    och det skrivs ut på sidan när ett formulär skickas så kommer scriptet inte att köras.
+  </p>
+  <p>
+    OBS: detta är bara en heuristik och inget man ska förlita sig på och saknas i
+    många webbläsare (t.ex. Edge och Firefox).
+  </p>
+
+  <p>
+    Headern <code>X-XSS-Protection</code> kan användas av servern för att styra
+    hur skyddet tillämpas.
+  </p>
+
+  <h2>Stored XSS</h2>
+  <p>
+    En Stored XSS-attack är när en angripare kan persistera ett script i den sårbara applikationen.
+    Ett exempel kan vara ett <a class="embed" href="{{ 'posts' | route_url(query={'user': 2}) }}">inlägg</a> på ett diskussionsforum.
+  </p>
+  <p>
+    Detta är den allvarligare typen av XSS eftersom den inte kräver att angriparen manipulerar
+    ett offer att öppna en särskilt konstruerad länk.
+    Det räcker att besöka en sida på ordinarie sätt.
+  </p>
+  <p>
+    Exempel kan vara ett script som samlar på sig användarnamn och lösenord för varje
+    användare som loggar in.
+  </p>
+
+  <h2>Slutsatser</h2>
+  <p>
+    Eka aldrig någonsin data utan att använda escape-mekanismer, även i fall där det till
+    synas borde vara säkert.
+  </p>
 
 {% endblock topic %}

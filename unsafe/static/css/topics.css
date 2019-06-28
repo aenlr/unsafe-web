@@ -67,6 +67,10 @@
   background-color: initial;
 }
 
+pre {
+  max-width: 500px;
+}
+
 pre.inline-sample code {
   display: inline;
 }
