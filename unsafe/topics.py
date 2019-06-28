@@ -1,6 +1,6 @@
 from pyramid.httpexceptions import HTTPNotFound
-from pyramid.request import Request
 from pyramid.renderers import render_to_response
+from pyramid.request import Request
 from pyramid.view import view_config
 
 MENU = [
@@ -35,7 +35,7 @@ MENU = [
                 'menu': [
                     {'title': 'URL:er', 'topic': 'urls'},
                     {'title': 'XSS', 'topic': 'xss'},
-                    {'title': 'Osäker förbindelse', 'topic': 'xss'},
+                    {'title': 'Osäker förbindelse', 'topic': 'nohttps'},
                     {'title': 'Delad dator', 'topic': 'shared-computer'},
                 ]
             },
