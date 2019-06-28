@@ -66,3 +66,7 @@
 .menu-list a.menu-toggle:hover {
   background-color: initial;
 }
+
+pre.inline-sample code {
+  display: inline;
+}

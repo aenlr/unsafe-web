@@ -50,7 +50,8 @@
                       </span>
                   </a>
                 </div>
-                <iframe></iframe>
+                <iframe {% if initial_iframe is defined -%} src="{{ initial_iframe }}" {%- endif -%}>
+                </iframe>
               </div>
             </div>
           {% endif %}
@@ -75,4 +76,8 @@
   <pre
     {%- if id %} id="{{ id }}" {% endif -%}><code
     {%- if class %} class="{{ class }}"{% endif -%}>{{ caller() }}</code></pre>
+{%- endmacro -%}
+
+{%- macro inlinesample(class='') -%}
+  <pre class="inline-sample"><code{%- if class %} class="{{ class }}"{% endif -%}>{{ caller() }}</code></pre>
 {%- endmacro -%}

@@ -1,42 +1,108 @@
 {% extends "topics/base.jinja2" %}
+{%- set initial_iframe = '/notes?embedded' -%}
 
 {% block topic %}
-  <h3>En sak</h3>
-  <a class="embed" href="{{ 'notes' | route_url(_query={'search':'semlor'}) }}">Test</a>
+  <h2>Översikt</h2>
 
-  <h3>En sak till</h3>
-  <a class="embed" href="{{ 'posts' | route_url }}">Test</a>
+  SQL Injection utnyttjar brister i applikationer som tillåter att indata
+  hanteras som del av en SQL-sats istället för som data för parametrar.
 
-  <h3>What is Lorem Ipsum?</h3>
+  <h2>Enkel SQL-injection</h2>
+
   <p>
-
-
-    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's
-    standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a
-    type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting,
-    remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing
-    Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions
-    of Lorem Ipsum.
-
+    Det vanligaste sättet är att utnyttja bristande escaping, dvs. naiv kod som
+    direkt använder indata i en SQL-sats, t.ex.
   </p>
 
-  <h3>Where does it come from?</h3>
+  {% call inlinesample('sql') %} SELECT * FROM users WHERE username = '[ANVÄNDARE]' {% endcall %}
+
   <p>
-    Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin
-    literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney
-    College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and
-    going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes
-    from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero,
-    written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first
-    line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
+    Ett sätt att bryta sig ur blocket <code>'[ANVÄNDARE]'</code> är att infoga en egen apostrof
+    och matcha den omslutande apostroften, t.ex. <code>' or '1'='1</code> vilket ger följande
+    SQL
+  </p>
 
-    The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32
-    and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form,
-    accompanied by English versions from the 1914 translation by H. Rackham.
+  {% call inlinesample('sql') -%} SELECT * FROM users WHERE username = '' or '1'='1' {%- endcall %}
 
+  <p>
+    Den SQL-satsen kommer att returnera alla rader i tabellen <code>users</code>.
+  </p>
+
+  <p>
+    <a class="embed" href='{{ "notes" | route_url }}'>/notes</a> visar användarens anteckningar.
+  </p>
+
+  <p>
+    Genom SQL Injection i en parameter kan vi visa andras anteckningar:
+    <a class="embed" href='{{ "notes" | route_url(_query={"category": "' or '1'='1"}) }}'>/notes?category=' or '1'='1</a>
+  </p>
+
+  <h2>Läs ut data från andra tabeller</h2>
+
+  <p>
+    Ett enkelt sätt att lura en sårbar applikation till att returnera data
+    från andra tabeller är att använda union. Klicka på exemplet nedan för
+    att visa hur användaruppgifter i denna applikation kan läsas ut.
+  </p>
+
+  <div>
+    <a class="embed" href='{{ "notes" | route_url(_query={"category": "' and 1=0 union all select 1, user_id, username, email, password, '' from user --"}) }}'>
+    {% call sample() -%}
+SELECT note_id, user_id, category, content,
+       created_at, updated_at
+  FROM note
+ WHERE user_id = 4
+   AND category = ''
+    -- Här börjar vår kod
+   and 1=0
+union all
+    select 1, user_id, username,
+           email, password, ''
+    from user --' ORDER BY updated_at DESC
+  {%- endcall %}
+    </a>
+  </div>
+
+  <p>
+    Ovanstående exempel använder <code>and 1=0</code> för att exkludera alla rader från
+    den avsedda SQL-satsen.
+  </p>
+  <p>
+    Därefter används <code>union all</code> för att returnera rader
+    från tabellen med användarupgifter.
+  </p>
+  <p>
+    Slutligen avslutas med <code>--</code> för att exkludera eventuella
+    andra delar av den avsedda SQL-satsen.
+  </p>
+
+  <h2>Andra tekniker</h2>
+  <p>
+    Det finns mer sofistikera sätt att utnyttja SQL Injection på ställen
+    där det inte är självklart att det kan genomföras, t.ex. kan man genom
+    SQL Injection i <code>ORDER BY</code> extrahera en bit information i taget.
+  </p>
+
+  <p>
+    SQL Injection i <code>LIMIT</code>-satsen kan utnyttjas trivialt.
   </p>
 
   <h2>Verktyg</h2>
+  <p>
+    Att manuellt konstruera en payload för SQL Injection kan vara besvärligt
+    eftersom man som angripare inte vet exakt hur SQL-satserna ser ut under utan.
+  </p>
+
+  <p>
+    Det finns tekniker för att experimentera sig fram, identifiera antal
+    kolumner som returneras av SQL-satsen, söka efter sårbara parametrar,
+    identifiera typen av databas mm.
+  </p>
+  <p>
+    Men angriparen måste inte jobbet för hand utan kan använda olika verktyg för att
+    söka efter sårbarheter.
+  </p>
+
   <ul>
     <li>
       <a href="http://sqlmap.org/">sqlmap®</a>
@@ -51,4 +117,26 @@
       mfl...
     </li>
   </ul>
+
+  <p>
+    Exempel som använder sqlmap för att visa alla tabeller i denna applikations databas
+  </p>
+  {% call sample('Dumpa databas med sqlmap') -%}
+$ sqlmap --dump --cookie=session=[COOKIE] \
+    -u 'http://ip:6543/notes?category=mat'
+  {%- endcall -%}
+  <p>
+    Logga in och kopiera cookien <code>session</code> till kommandot och server-adressen.
+  </p>
+
+  <h2>Slutsats</h2>
+  <p>
+    Använd <em>alltid</em> parametristerad SQL med placeholders.
+  </p>
+  <p>
+    Sätt aldrig samman SQL-satser genom strängkonkatenering av data från en anropare, inte
+    ens för kod som bara anropas internt. Nästa utvecklare kanske väljer att anropa
+    din fina funktion i ett annat sammanhang och vips ligger databasen öppen för angripare.
+  </p>
+
 {% endblock topic %}
