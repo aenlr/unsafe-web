@@ -1,8 +1,45 @@
 {% extends "topics/base.jinja2" %}
+{% set show_example = False -%}
 
 {% block topic %}
-  <h2>Översikt</h2>
+  <h2 id="urls">URL:er</h2>
+  <p>
+    Vissa webbramverk tillåter att sessioner propageras via URL:en. Det är en mycket dålig idé:
+  </p>
+  <ul>
+    <li>Sessionsid är fullt synlig i URL:en.</li>
+    <li>Sessionsid läcker ut i loggar.</li>
+    <li>Sessionsid exponeras för externa parter via Referer-headern.</li>
+    <li>JavaScript kan stjäla sessionsid (till skillnad från en cookie som är <code>HttpOnly</code></li>
+    <li>Sessionfixering förenklas drastiskt eftersom en angripare kan skicka en särskilt konstruerad
+      länk till ett offer.
+    </li>
+  </ul>
 
+  <p>
+    Många Java Servlet containers tillåter per default sessionsid i URL:en som fallaback,
+    bla. Undertow och Tomcat/Catalina som accepterar jsessionid som URL-parameter (matrisparameter):
+    <a>https://example.com/login;jsessionid=0123456789abcdef</a>
+  </p>
 
+  <h2 id="urls">XSS</h2>
+  <p>
+    Om det finns Cross Site Scripting-brister i applikationen ger sessionen angriparen möjlighet
+    att göra nästan allt som en vanlig användare kan. Därför är det viktigt att skydda sig mot
+    detta och skydda eventuell sessionskaka <a href="{{ 'topic' | route_url(topic='cookies', _anchor='httponly') }}">HttpOnly</a>.
+  </p>
+
+  <h2 id="nohttps">Osäker förbindelse</h2>
+  <p>
+    Om förbindelsen inte använder <a href="{{ 'topic' | route_url(topic='https') }}">HTTPS</a> kan sessionsinformation
+    lätt sniffas. Det är inte alltid tillräckligt att ha bara ha HTTPS om en angripare kan lura en användare
+    att först besök innan omdirigering till HTTPS.
+  </p>
+
+  <h2 id="shared-computer">Delad dator</h2>
+  <p>
+    Lämna aldrig en delad dator utan att logga ut och stänga ner webbläsaren. Helst bör man rensa
+    all webbhistorik om datorn inte är betrodd.
+  </p>
 
 {% endblock topic %}
